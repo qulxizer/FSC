@@ -1,0 +1,8 @@
+opencv-contrib-python
+
+# matplotlib
+matplotlib
+PyQt6
+
+# testing purposes
+pytest
