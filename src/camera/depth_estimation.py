@@ -2,12 +2,12 @@ import cv2 as cv
 
 class DepthEstimation(object):
     """docstring for DepthEstimation."""
-    def __init__(self, numDisparities:int, blockSize:int, 
-                minDisparities:int, baseline:float,
+    def __init__(self, numDisparities:int, block_size:int, 
+                minDisparity:int, baseline:float,
                 focal_length:float):
-        self.minDisparities = minDisparities
+        self.minDisparities = minDisparity
         self.numDisparities = numDisparities
-        self.blockSize = blockSize
+        self.block_size = block_size
         self.baseline = baseline
         self.focal_length = focal_length
 
@@ -16,8 +16,17 @@ class DepthEstimation(object):
         stereo = cv.StereoSGBM.create(
             minDisparity=self.minDisparities,
             numDisparities=self.numDisparities,
-            blockSize=self.blockSize)
+            blockSize=self.block_size,
+            P1=8 * 3 * self.block_size**2,
+            P2=32 * 3 * self.block_size**2,
+            disp12MaxDiff=1,
+            uniquenessRatio=10,
+            speckleWindowSize=100,
+            speckleRange=32
+            )
         disparity = stereo.compute(imgL,imgR)
+
+
         return disparity
     
     def get_distance(self, disparity:cv.typing.MatLike, x:int, y:int):

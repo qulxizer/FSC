@@ -2,11 +2,11 @@ from src.camera.depth_estimation import DepthEstimation
 from matplotlib import pyplot as plt
 import cv2 as cv
 
-imgL = cv.imread("dataset/middlebury_edu/left1.ppm", cv.IMREAD_GRAYSCALE)
-imgR = cv.imread("dataset/middlebury_edu/right1.ppm", cv.IMREAD_GRAYSCALE)
-depth_estimator = DepthEstimation(numDisparities=32,
-                                  minDisparities=16,
-                                blockSize=5,
+imgL = cv.imread("dataset/middlebury_edu/tsukuba/left1.ppm", cv.IMREAD_GRAYSCALE)
+imgR = cv.imread("dataset/middlebury_edu/tsukuba/right1.ppm", cv.IMREAD_GRAYSCALE)
+depth_estimator = DepthEstimation(numDisparities=16 * 6,
+                                  minDisparity=0,
+                                block_size=7,
                                 baseline=193.001,
                                 focal_length=3997.684,
                                 )
