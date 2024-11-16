@@ -11,31 +11,30 @@ class DepthEstimation(object):
         self.baseline = baseline
         self.focal_length = focal_length
 
-    def estimate(self,imgL:cv.typing.MatLike,
+    def depthMap(self,imgL:cv.typing.MatLike,
                 imgR:cv.typing.MatLike) -> cv.typing.MatLike:
+        """ This method takes two images and generate the depth map
+        using cv.StereoSGBM. 
+        """
         stereo = cv.StereoSGBM.create(
             minDisparity=self.minDisparities,
             numDisparities=self.numDisparities,
             blockSize=self.block_size,
-            P1=8 * 3 * self.block_size**2,
-            P2=32 * 3 * self.block_size**2,
-            disp12MaxDiff=1,
-            uniquenessRatio=10,
-            speckleWindowSize=100,
-            speckleRange=32
+            P1=8 * 3 * self.block_size**2,  # Smoothness for small changes  
+            P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
             )
         disparity = stereo.compute(imgL,imgR)
 
 
         return disparity
     
-    def get_distance(self, disparity:cv.typing.MatLike, x:int, y:int):
-        """ Get the distance from the disparity at pixel (x, y) """
+    def getDistance(self, disparity:cv.typing.MatLike, x:int, y:int):
+        """ Get the distance from the disparity at pixel (x, y). """
         d = disparity[y, x]  # Get the disparity value at (x, y)
         
         if d == 0:
             return float('inf')  # If disparity is 0, the object is too far or no match
 
-        # Convert disparity to distance
+        # Convert disparity to distance formula: Z = B*f / disparity
         distance = (self.focal_length * self.baseline) / d
         return distance

@@ -17,4 +17,4 @@ from camera.utils import Utils
 # stereo_camera.capture()
 
 utils = Utils()
-utils.ListPorts(6)
+utils.listPorts(6)

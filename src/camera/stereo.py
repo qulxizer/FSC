@@ -6,8 +6,10 @@ import cv2 as cv
 @dataclass
 class Camera:
     """Camera dataclass contains general information about
-    the camera framerate cv_index """
+    the camera framerate cv_index. """
     # OpenCv index
+    capture: cv.VideoCapture
+    name: str
     cv_index: int
     framerate: int
 
@@ -29,18 +31,11 @@ class StereoCamera():
         if not right_cam.isOpened():
             print("Error: Could not access right camera.")
             exit(1)
-    
+            
         left_cam = cv.VideoCapture(self.right_camera.cv_index)
         if not left_cam.isOpened():
             print("Error: Could not access left camera.")
             exit(1)
-
-        return left_cam, right_cam
-    
-    def calibrate(self):
-        pass
-    
-
         
         
 
