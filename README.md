@@ -6,6 +6,54 @@ Main idea of this project is to determine riped and unriped fruit and get the co
 
 ### Debian
 
+Updating repos
+```bash
+apt update
+```
+
+
+Installing python and nessesery tools
+```bash
+apt install git
+apt install python3
+apt install python3-pip
+apt install python3.11-venv
+```
+
+Cloning the repo
+``` bash
+git clone https://github.com/qulxizer/FSC
+```
+
+Cd into the directory and create venv
+```bash
+cd FSC
+
+python3 -m venv venv
+source ./venv/bin/activate
+```
+
+Installing requirements
+```bash
+pip install -r requirements.txt
+```
+
+After that fell free to run all the provided scripts
+```bash
+# To run the program run
+make run
+
+# To unit test the app run
+make test
+
+# To capture images run
+make getImages
+
+# Finally to calibrate the cameras use
+make calibrate
+
+```
+
 
 
 ## Used Datasets
