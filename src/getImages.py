@@ -4,14 +4,15 @@ import cv2 as cv
 
 utils = Utils()
 
-Right = Camera(
-    capture=cv.VideoCapture(0),
-    name="Right Camera",
+cam = Camera(
+    capture=cv.VideoCapture(2),
+    calibration_result=None, # type: ignore
+    name="Left Camera",
     cv_index=0,
     framerate=30
 )
-utils.captureImageToDirectory(
-    camera=Right,
-    directory="dataset/our_dataset/calibration/right_camera/",
+utils.captureImageToDirectory( 
+    camera=cam,
+    directory="dataset/our_dataset/calibration/left_camera/",
     key=ord('s')
 )

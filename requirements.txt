@@ -1,4 +1,8 @@
+# opencv
 opencv-contrib-python
+
+# numpy
+numpy
 
 # matplotlib
 matplotlib

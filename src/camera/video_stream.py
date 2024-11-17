@@ -1,43 +1,48 @@
 import cv2 as cv
 from threading import Thread
-from .stereo import Camera
-
-
+from model import Camera
 
 class VideoStream:
     """
-    This class captures video frames in a seperate thread from the main.
-    It helps make video faster.
+    This class captures video frames in a separate thread from the main.
+    It helps make video capture faster.
     """
-    def __init__(self, camera:Camera):
+    def __init__(self, camera: Camera):
         self.camera = camera
         self.ret, self.frame = self.camera.capture.read()
+        if not self.ret:
+            print(f"Failed to initialize camera {self.camera.name}")
         self.stopped = False
-        Thread(target=self.update, args=()).start()
+        self.thread = Thread(target=self.update, args=())
+        self.thread.start()
 
     def start(self):
         """
-        Runs the video in a new thread.
-        :return: This object (so you can chain methods).
+        Starts the video capturing in a separate thread.
         """
         return self
 
     def update(self):
         """
         Keeps reading frames from the video.
+        This runs in a separate thread to keep the main thread free for other tasks.
         """
         while not self.stopped:
             self.ret, self.frame = self.camera.capture.read()
+            if not self.ret:
+                print(f"Failed to read frame from {self.camera.name}")
+                break  # If frame capture fails, stop the loop
 
     def read(self):
         """
-        Gives the current video frame.
+        Returns the latest frame captured by the video stream.
         """
         return self.frame
 
     def stop(self):
         """
-        Stops the video and closes the stream.
+        Stops the video capture and releases the camera.
         """
         self.stopped = True
+        self.thread.join()  # Wait for the thread to finish
         self.camera.capture.release()

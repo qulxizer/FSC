@@ -1,14 +1,42 @@
 import glob
 import cv2 as cv
 import numpy as np
+import json
 from time import time
-from .stereo import Camera
+from model import Camera, CalibrationResult
 from .video_stream import VideoStream 
 
 
 class Utils(object):
     """Useful utilites."""
-    
+
+    def loadCalibrationResultFromJson(self, filename:str) -> CalibrationResult:
+        with open(filename) as f:
+            data = json.load(f)
+
+        # Convert the ImagePoints and ObjectPoints to lists of points
+        image_points = [np.array(points, np.float32).reshape(-1, 2) for points in data["ImagePoints"]]
+        object_points = [np.array(points, np.float32).reshape(-1, 3) for points in data["ObjectPoints"]]
+
+        return CalibrationResult(
+            Distortion=np.array(data["Distortion"], np.float32),
+            CameraMatrix=np.array(data["CameraMatrix"], np.float32),
+            ImagePoints=image_points, # type: ignore
+            ObjectPoints=object_points, # type: ignore
+        )
+
+    def saveCalibrationResultJson(self, result: CalibrationResult, filename: str):
+        # Convert the calibration result back into a dictionary
+        data = {
+            "Distortion": result.Distortion.tolist(),
+            "CameraMatrix": result.CameraMatrix.tolist(),
+            "ImagePoints": result.ImagePoints.tolist(),  # 2D points as list of lists
+            "ObjectPoints": result.ObjectPoints.tolist(),  # 3D points as list of lists
+        }
+
+        with open(filename, 'w') as file:
+            json.dump(data, file)
+
     def listPorts(self, num:int):
         """
         This utility method will try to connect check each camera index
@@ -57,7 +85,11 @@ class Utils(object):
             cv.destroyAllWindows()
 
     def calibrateCamera(self, num_columns:int ,num_rows:int, directory:str):
-    # Termination criteria
+        """
+        This utility method will pull image to the provided directory and
+        calibrate the images based on the providednum of columns and rows
+        """
+        # Termination criteria
         criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
         # Create base object points for a single image
@@ -107,7 +139,7 @@ class Utils(object):
             image_points_array = np.array(image_points, dtype=np.float32)
             
             # Perform camera calibration (None means it should calculate it)
-            ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv.calibrateCamera(
+            ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
                 objectPoints=object_points_array, # type: ignore
                 imagePoints=image_points_array, # type: ignore
                 imageSize=gray_image.shape[::-1], 
@@ -118,12 +150,19 @@ class Utils(object):
             # Check calibration result
             if ret:
                 print("Calibration successful.")
-                print("Camera Matrix:\n", camera_matrix)
-                print("Distortion Coefficients:\n", dist_coeffs)
-                return camera_matrix, dist_coeffs
+                print("Camera Matrix:\n", mtx)
+                print("Distortion:\n", dist)
+                return CalibrationResult(
+                                        Distortion=dist,
+                                        CameraMatrix=mtx,
+                                        ObjectPoints=object_points_array,
+                                        ImagePoints=image_points_array,
+                                        )
             else:
                 print("Calibration failed.")
-                return None, None
         else:
             print("No valid images were found for calibration.")
-            return None, None
+
+    def calibrateStereo(self, Lcam:Camera, Rcam:Camera):
+        pass
+        # cv.stereoCalibrate()

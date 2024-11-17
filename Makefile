@@ -1,3 +1,7 @@
+
+
+PYTHONPATH := $(shell pwd)/src
+
 run:
 	python3 ./src/main.py
 
@@ -5,11 +9,13 @@ run:
 .PHONY: test
 test:
 	@# using sh explicitly to run test to avoid shell-specific syntax 
-	sh -c "PYTHONPATH=$$(pwd) pytest -s"
+	sh -c "PYTHONPATH=$(PYTHONPATH) pytest -s"
 
 getImages:
-	python3 ./src/getImages.py
+	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/getImages.py"
 
+listPorts:
+	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/listports.py"
 
 calibrate:
-	python3 ./src/calibrate.py
+	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/calibrate.py"
