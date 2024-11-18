@@ -29,6 +29,11 @@ class DepthEstimation(object):
         """ This method takes two images and generate the depth map
         using cv.StereoSGBM. 
         """
+
+        imgL = cv.cvtColor(imgL, cv.COLOR_BGR2GRAY)
+        imgR = cv.cvtColor(imgR, cv.COLOR_BGR2GRAY)
+
+
         stereo = cv.StereoSGBM.create(
             minDisparity=self.minDisparity,
             numDisparities=self.numDisparities,
