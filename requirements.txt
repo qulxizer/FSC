@@ -8,5 +8,10 @@ numpy
 matplotlib
 PyQt6
 
-# testing purposes
-pytest
+# object detection
+ultralytics
+roboflow
+
+# training
+torch
+torchvision

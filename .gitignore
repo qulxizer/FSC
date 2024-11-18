@@ -4,3 +4,9 @@ __pycache__/
 
 #pytest
 .pytest_cache
+
+tomato_checker/
+
+runs/
+
+# yolo11n.pt

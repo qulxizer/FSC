@@ -38,6 +38,17 @@ Installing requirements
 pip install -r requirements.txt
 ```
 
+Downloading the dataset for the detector:
+1. Get Apikey from [universe.roboflow](https://universe.roboflow.com)
+2. Run ```make download_dataset ARGS="<<APIKEY_HERE>> dataset/tomato_checker"```
+3. Change ```dataset/tomato_checker/data.yaml``` paths to full path like this: ```
+
+train: /home/$USER/PATH-TO-REPO/dataset/tomato_checker/valid
+val: /home/$USER/PATH-TO-REPO/dataset/tomato_checker/valid/images
+test: /home/$USER/PATH-TO-REPO/dataset/tomato_checker/test/images
+
+```
+
 After that fell free to run all the provided scripts
 ```bash
 # To run the program run
@@ -58,13 +69,10 @@ make calibrate
 
 ## Used Datasets
 
-1.  **Tomato fruits dataset** - **Description**:
+1.  **Tomato Checker** - **Description**:
 
-    - **Source**: [Tomato fruits dataset](https://www.kaggle.com/datasets/nexuswho/tomatofruits/data) 
-    - **Citation**:
-    ```
-        MPUTU, HASSAN; Abdel-Mawgood, Ahmed; Shimada, Atsushi; Sayed, Mohammed S. (2023), “Tomato fruits dataset for binary and multiclass classification”, Mendeley Data, V1, doi: 10.17632/x4s2jz55dx.1
-    ```
+    - **Source**: [Tomato Checker](https://universe.roboflow.com/money-detection-xez0r/tomato-checker/dataset/1) 
+
 2. **Backpack-perfect**
     - **Source**: [Backpack-perfect]
     (https://vision.middlebury.edu/stereo/data/scenes2014/)
