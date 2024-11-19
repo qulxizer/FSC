@@ -1,5 +1,6 @@
 import cv2 as cv
-from model import StereoCalibrationParams 
+from model import StereoCalibrationParams , Camera, CalibrationResult
+import numpy as np
 
 class DepthEstimation(object):
     """docstring for DepthEstimation."""
@@ -24,8 +25,13 @@ class DepthEstimation(object):
         self.uniquenessRatio = params.uniquenessRatio
         self.speckleWindowSize = params.speckleWindowSize
 
-    def depthMap(self,imgL:cv.typing.MatLike,
-                imgR:cv.typing.MatLike) -> cv.typing.MatLike:
+    def depthMap(self,
+                cam_left_result:CalibrationResult,
+                cam_right_result:CalibrationResult,
+                imgL:cv.typing.MatLike,
+                imgR:cv.typing.MatLike,
+                R,
+                T) -> cv.typing.MatLike:
         """ This method takes two images and generate the depth map
         using cv.StereoSGBM. 
         """
@@ -42,7 +48,19 @@ class DepthEstimation(object):
             # P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
             )
         disparity = stereo.compute(imgL,imgR)
-        # cv.stereoRectify()
+        R1, R2, P1, P2, Q, _, _ = cv.stereoRectify(
+            cameraMatrix1=cam_left_result.CameraMatrix,
+            distCoeffs1=cam_left_result.Distortion,
+            cameraMatrix2=cam_left_result.CameraMatrix,
+            distCoeffs2=cam_right_result.Distortion,
+            imageSize=(640,480),
+            R=R,
+            T=T,
+            )
+        # depth_map = cv.reprojectImageTo3D(disparity, Q)
+        # depth_vis = cv.normalize(depth_map, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
+        # cv.applyColorMap(depth_vis, cv.COLORMAP_JET)        
+        disparity = cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
 
         return disparity
     

@@ -29,7 +29,7 @@ class StereoCamera():
         )
         self.left_camera.calibration_result.ObjectPoints
         # ObjectPoints should be the same from the right and left image opencv only one
-        cv.stereoCalibrate(
+        ret, camera_matrix_left, dist_coeffs_left, camera_matrix_left, dist_coeffs_right ,R ,T, E, F =cv.stereoCalibrate(
             objectPoints=self.left_camera.calibration_result.ObjectPoints, # type: ignore
             imagePoints1=self.left_camera.calibration_result.ImagePoints, # type: ignore
             imagePoints2=self.right_camera.calibration_result.ImagePoints, # type: ignore
@@ -89,15 +89,21 @@ class StereoCamera():
                 if cv.waitKey(10) & 0xFF == ord('q'):
                     break
 
-                disparity = depth.depthMap(Lframe   , Rframe)
-                distance = depth.getDistance(disparity, 320, 240)
-                if distance != None:
-                    print(distance)
+                depth_map = depth.depthMap(Lcam.camera.calibration_result,
+                                            Rcam.camera.calibration_result,
+                                            Lframe,
+                                            Rframe,
+                                            R,
+                                            T
+                                            )
+                # distance = depth.getDistance(disparity, 320, 240)
+                # if distance != None:
+                #     print(distance)
 
-                Lframe = cv.GaussianBlur(Lframe, (5,5), 1)
-                Rframe = cv.GaussianBlur(Rframe, (5,5), 1)
-                norm_image = cv.normalize(disparity, None, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=cv.CV_32F)
-                cv.imshow("depth_map", norm_image)
+                # Lframe = cv.GaussianBlur(Lframe, (5,5), 1)
+                # Rframe = cv.GaussianBlur(Rframe, (5,5), 1)
+                # norm_image = cv.normalize(disparity, None, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=cv.CV_32F)
+                cv.imshow("depth_map", depth_map)
 
         finally:
             # Stop both cameras and clean up
