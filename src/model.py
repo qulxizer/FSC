@@ -37,7 +37,7 @@ class StereoCalibrationParams:
 class Camera:
     """Camera dataclass contains general information about
     the camera framerate cv_index. """
-    capture: cv.VideoCapture
+    capture: cv.VideoCapture 
     calibration_result: CalibrationResult
     name: str
     cv_index: int

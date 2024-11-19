@@ -9,9 +9,9 @@ matplotlib
 PyQt6
 
 # object detection
-ultralytics
-roboflow
+# ultralytics
+# roboflow
 
 # training
-torch
-torchvision
+# torch
+# torchvision

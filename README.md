@@ -17,7 +17,9 @@ Installing python and nessesery tools
 apt install git
 apt install python3
 apt install python3-pip
-apt install python3.11-venv
+apt install python3-venv
+apt install libxcb-cursor0
+apt install qt6-base-dev
 ```
 
 Cloning the repo

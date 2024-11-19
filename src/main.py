@@ -8,7 +8,7 @@ utils = Utils()
 
 left_cam = Camera(
     cv.VideoCapture(2),
-    utils.loadCalibrationResultFromJson("dataset/our_dataset/calibration/left_camera/calibration.json"),
+    utils.loadCalibrationResultFromJson("dataset/our_dataset/calibration/left/calibration.json"),
     "Left Camera",
     cv_index=0,
     framerate=30
@@ -16,7 +16,7 @@ left_cam = Camera(
 
 right_cam = Camera(
     cv.VideoCapture(0),
-    utils.loadCalibrationResultFromJson("dataset/our_dataset/calibration/right_camera/calibration.json"),
+    utils.loadCalibrationResultFromJson("dataset/our_dataset/calibration/right/calibration.json"),
     "Right Camera",
     cv_index=2,
     framerate=30
@@ -28,9 +28,9 @@ stereo_camera = StereoCamera(
     right_camera=right_cam,
     params=StereoCalibrationParams(
         focal_length=None,
-        baseline=73.6,
-        block_size=5,
-        numDisparities=16,
+        baseline=67,
+        block_size=17,
+        numDisparities=16 * 6,
         minDisparity=0,
     ),
 )

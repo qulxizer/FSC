@@ -55,46 +55,52 @@ class StereoCamera():
 
         # cv.imshow("Before Left", Lframe)
         # cv.imshow("Before Right", Rframe)
-        left_undistorted = cv.undistort(Lframe,
-                                        self.left_camera.calibration_result.CameraMatrix,
-                                        self.left_camera.calibration_result.Distortion)
-        right_undistorted = cv.undistort(Rframe,
-                                        self.left_camera.calibration_result.CameraMatrix,
-                                        self.left_camera.calibration_result.Distortion)
+
         
-        cv.imshow("After Left", left_undistorted)
-        cv.imshow("After Right", right_undistorted)
+        # cv.imshow("After Left", left_undistorted)
+        # cv.imshow("After Right", right_undistorted)
 
-        time.sleep(100)
-        # try:
-        #     while True:
-        #         # Read the right camera frame
-        #         Rframe = Rcam.read()
-        #         if Rframe is not None and Rframe.size > 0:
-        #             pass
-        #             # cv.imshow(self.right_camera.name, Rframe)
-        #         else:
-        #             print("Empty or invalid right frame!")
+            # time.sleep(100)
+            # cv.destroyAllWindows()
+        try:
+            while True:
+                left_undistorted = cv.undistort(Lframe,
+                                self.left_camera.calibration_result.CameraMatrix,
+                                self.left_camera.calibration_result.Distortion)
+                right_undistorted = cv.undistort(Rframe,
+                                                self.left_camera.calibration_result.CameraMatrix,
+                                                self.left_camera.calibration_result.Distortion)
+                # Read the right camera frame
+                Rframe = Rcam.read()
+                if Rframe is not None and Rframe.size > 0:
+                    pass
+                    # cv.imshow(self.right_camera.name, Rframe)
+                else:
+                    print("Empty or invalid right frame!")
 
-        #         # Read the left camera frame
-        #         Lframe = Lcam.read()
-        #         if Lframe is not None and Lframe.size > 0:
-        #             pass
-        #             # cv.imshow(self.left_camera.name, Lframe)
-        #         else:
-        #             print("Empty or invalid left frame!")
+                # Read the left camera frame
+                Lframe = Lcam.read()
+                if Lframe is not None and Lframe.size > 0:
+                    pass
+                    # cv.imshow(self.left_camera.name, Lframe)
+                else:
+                    print("Empty or invalid left frame!")
 
-        #         if cv.waitKey(10) & 0xFF == ord('q'):
-        #             break
+                if cv.waitKey(10) & 0xFF == ord('q'):
+                    break
 
-        #         disparity = depth.depthMap(Rframe, Lframe)
-        #         distance = depth.getDistance(disparity, 320, 240)
-        #         if distance != None:
-        #             print(distance)
-        #         cv.imshow("depth_map", disparity)
+                disparity = depth.depthMap(Lframe   , Rframe)
+                distance = depth.getDistance(disparity, 320, 240)
+                if distance != None:
+                    print(distance)
 
-        # finally:
-        #     # Stop both cameras and clean up
-        #     Lcam.stop()
-        #     Rcam.stop()
-        #     cv.destroyAllWindows()
+                Lframe = cv.GaussianBlur(Lframe, (5,5), 1)
+                Rframe = cv.GaussianBlur(Rframe, (5,5), 1)
+                norm_image = cv.normalize(disparity, None, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=cv.CV_32F)
+                cv.imshow("depth_map", norm_image)
+
+        finally:
+            # Stop both cameras and clean up
+            Lcam.stop()
+            Rcam.stop()
+            cv.destroyAllWindows()

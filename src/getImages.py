@@ -13,6 +13,6 @@ cam = Camera(
 )
 utils.captureImageToDirectory( 
     camera=cam,
-    directory="dataset/our_dataset/calibration/left_camera/",
+    directory="dataset/our_dataset/calibration/left/",
     key=ord('s')
 )
