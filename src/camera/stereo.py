@@ -89,7 +89,7 @@ class StereoCamera():
                 if cv.waitKey(10) & 0xFF == ord('q'):
                     break
 
-                depth_map = depth.depthMap(Lcam.camera.calibration_result,
+                disparity, depth_map = depth.depthMap(Lcam.camera.calibration_result,
                                             Rcam.camera.calibration_result,
                                             Lframe,
                                             Rframe,
@@ -103,7 +103,8 @@ class StereoCamera():
                 # Lframe = cv.GaussianBlur(Lframe, (5,5), 1)
                 # Rframe = cv.GaussianBlur(Rframe, (5,5), 1)
                 # norm_image = cv.normalize(disparity, None, alpha=0, beta=1, norm_type=cv.NORM_MINMAX, dtype=cv.CV_32F)
-                cv.imshow("depth_map", depth_map)
+                cv.imshow("disparity", disparity)
+                cv.imshow("depth map", depth_map)
 
         finally:
             # Stop both cameras and clean up

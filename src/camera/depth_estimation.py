@@ -31,7 +31,7 @@ class DepthEstimation(object):
                 imgL:cv.typing.MatLike,
                 imgR:cv.typing.MatLike,
                 R,
-                T) -> cv.typing.MatLike:
+                T) -> (cv.typing.MatLike, cv.typing.MatLike):
         """ This method takes two images and generate the depth map
         using cv.StereoSGBM. 
         """
@@ -48,6 +48,8 @@ class DepthEstimation(object):
             # P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
             )
         disparity = stereo.compute(imgL,imgR)
+
+
         R1, R2, P1, P2, Q, _, _ = cv.stereoRectify(
             cameraMatrix1=cam_left_result.CameraMatrix,
             distCoeffs1=cam_left_result.Distortion,
@@ -57,12 +59,20 @@ class DepthEstimation(object):
             R=R,
             T=T,
             )
-        # depth_map = cv.reprojectImageTo3D(disparity, Q)
-        # depth_vis = cv.normalize(depth_map, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
-        # cv.applyColorMap(depth_vis, cv.COLORMAP_JET)        
-        disparity = cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
+        
+        map1_left, map2_left = cv.initUndistortRectifyMap()
 
-        return disparity
+        disparity_vis:cv.typing.MatLike = cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
+        depth_map = cv.reprojectImageTo3D(disparity_vis, Q)[:,:,2]
+
+        depth_map[np.isinf(depth_map)] = 0
+        depth_map[np.isnan(depth_map)] = 0
+        depth_map[depth_map <= 0] = 0
+
+        depth_vis:cv.typing.MatLike = cv.normalize(depth_map, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
+        # depth_vis = cv.applyColorMap(depth_vis, cv.COLORMAP_JET)        
+
+        return disparity_vis, depth_vis
     
     def getDistance(self, disparity:cv.typing.MatLike, x:int, y:int):
         """ Get the distance from the disparity at pixel (x, y). """
