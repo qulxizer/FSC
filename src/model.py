@@ -9,6 +9,7 @@ class CalibrationResult(object):
     CameraMatrix: np.ndarray
     ObjectPoints: np.ndarray
     ImagePoints: np.ndarray
+    
 
 @dataclass
 class StereoCalibrationParams:

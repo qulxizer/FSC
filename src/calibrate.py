@@ -6,11 +6,19 @@ import numpy as np
 utils = Utils()
 
 left_camera_directory = sys.argv[1]
-res = utils.calibrateCamera(7,6, left_camera_directory, Format.JPG)
-if res != None:
-    utils.saveCalibrationResultJson(res, left_camera_directory+"calibration.json")
+res_left = utils.calibrateCamera(7,6, left_camera_directory, Format.JPG)
 
 right_camera_directory = sys.argv[2]
-res = utils.calibrateCamera(7,6, right_camera_directory, Format.JPG)
-if res != None:
-    utils.saveCalibrationResultJson(res, right_camera_directory+"calibration.json")
+res_right = utils.calibrateCamera(7,6, right_camera_directory, Format.JPG)
+
+# Ensure the lengths of valid images are the same
+if res_left is not None and res_right is not None:
+    min_length = min(len(res_left.ObjectPoints), len(res_right.ObjectPoints))
+
+    # Truncate the results to the smaller size
+    res_left = utils.truncateCalibrationResult(res_left, min_length)
+    res_right = utils.truncateCalibrationResult(res_right, min_length)
+
+    # Save the calibration results
+    utils.saveCalibrationResult(res_left, left_camera_directory + "calibration")
+    utils.saveCalibrationResult(res_right, right_camera_directory + "calibration")

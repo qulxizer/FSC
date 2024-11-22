@@ -8,7 +8,7 @@ utils = Utils()
 
 left_cam = Camera(
     cv.VideoCapture(2),
-    utils.loadCalibrationResultFromJson("dataset/our_dataset/calibration/left/calibration.json"),
+    utils.loadCalibrationResultFrom("dataset/opencv_sample/left/calibration.npz"),
     "Left Camera",
     cv_index=0,
     framerate=30
@@ -16,7 +16,7 @@ left_cam = Camera(
 
 right_cam = Camera(
     cv.VideoCapture(0),
-    utils.loadCalibrationResultFromJson("dataset/our_dataset/calibration/right/calibration.json"),
+    utils.loadCalibrationResultFrom("dataset/opencv_sample/right/calibration.npz"),
     "Right Camera",
     cv_index=2,
     framerate=30

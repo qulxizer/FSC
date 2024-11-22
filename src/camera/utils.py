@@ -14,32 +14,24 @@ class Format(Enum):
 class Utils(object):
     """Useful utilites."""
 
-    def loadCalibrationResultFromJson(self, filename:str) -> CalibrationResult:
-        with open(filename) as f:
-            data = json.load(f)
-
-        # Convert the ImagePoints and ObjectPoints to lists of points
-        imgpoints = [np.array(points, np.float32).reshape(-1, 2) for points in data["ImagePoints"]]
-        objpoints = [np.array(points, np.float32).reshape(-1, 3) for points in data["ObjectPoints"]]
-
+    def loadCalibrationResultFrom(self, filename:str) -> CalibrationResult:
+        data = np.load(filename)
         return CalibrationResult(
-            Distortion=np.array(data["Distortion"], np.float32),
-            CameraMatrix=np.array(data["CameraMatrix"], np.float32),
-            ImagePoints=imgpoints, # type: ignore
-            ObjectPoints=objpoints, # type: ignore
+            data["Distortion"],
+            data["CameraMatrix"],
+            data["ObjectPoints"],
+            data["ImagePoints"]
         )
 
-    def saveCalibrationResultJson(self, result: CalibrationResult, filename: str):
+    def saveCalibrationResult(self, result: CalibrationResult, filename: str):
         # Convert the calibration result back into a dictionary
-        data = {
-            "Distortion": result.Distortion.tolist(),
-            "CameraMatrix": result.CameraMatrix.tolist(),
-            "ImagePoints": result.ImagePoints.tolist(),  # 2D points as list of lists
-            "ObjectPoints": result.ObjectPoints.tolist(),  # 3D points as list of lists
-        }
+        np.savez_compressed(filename,
+                            Distortion=result.Distortion,
+                            CameraMatrix=result.CameraMatrix,
+                            ImagePoints=result.ImagePoints,
+                            ObjectPoints=result.ObjectPoints,
+                            )
 
-        with open(filename, 'w') as file:
-            json.dump(data, file)
 
     def listPorts(self, num:int):
         """
@@ -60,6 +52,36 @@ class Utils(object):
                     print(f"Port {i} is working and reads images ({h} x {w})")
                 else:
                     print(f"Port {i} for camera ({h} x {w}) is present but does not reads.")
+
+    def truncateCalibrationResult(self, calibration_result, min_length):
+        return CalibrationResult(
+            Distortion=calibration_result.Distortion,
+            CameraMatrix=calibration_result.CameraMatrix,
+            ObjectPoints=calibration_result.ObjectPoints[:min_length],
+            ImagePoints=calibration_result.ImagePoints[:min_length],
+        )
+
+
+
+    def unDistortImage(self, img:cv.typing.MatLike, calibResult:CalibrationResult, w:int,h:int) -> cv.typing.MatLike:
+
+        # # Refining the camera matrix using parameters obtained by calibration
+        newcameramtx, roi = cv.getOptimalNewCameraMatrix(calibResult.CameraMatrix, calibResult.Distortion, (w,h), 1, (w,h))
+        
+        mapx,mapy=cv.initUndistortRectifyMap(
+            calibResult.CameraMatrix,
+            calibResult.Distortion,
+            None, # type: ignore
+            newcameramtx,
+            (w,h),
+            5
+            ) # type: ignore
+        dst = cv.remap(img,mapx,mapy,cv.INTER_LINEAR)
+        # dst = cv.undistort(img,calibResult.CameraMatrix, calibResult.Distortion, None, newcameramtx )
+        # return dst
+        
+        # undistorted_img = cv.undistort(img, calibResult.CameraMatrix, calibResult.Distortion, None, newcameramtx)
+        return dst
 
     def captureImageToDirectory(self, camera:Camera,directory:str, key:int):
         """
@@ -112,9 +134,13 @@ class Utils(object):
         for fname in images:
             img = cv.imread(fname)
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
             # Find the chess board corners
             ret, corners = cv.findChessboardCorners(gray, (num_rows,num_columns), None)
         
+            if not ret:
+                print(f"Chessboard not found in image: {fname}")
+                continue
             # If found, add object points, image points (after refining them)
             if ret == True:
                 objpoints.append(objp)

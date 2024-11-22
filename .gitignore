@@ -9,4 +9,6 @@ tomato_checker/
 
 runs/
 
+tmp/
+
 # yolo11n.pt
