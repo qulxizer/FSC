@@ -148,30 +148,30 @@ class Utils(object):
                 # Draw and display the corners
                 cv.drawChessboardCorners(img, (num_rows,num_columns), corners2, ret)
                 cv.imshow('img', img)
-                cv.waitKey(50)
+                cv.waitKey(500)
         
         cv.destroyAllWindows()
 
-            
-        # Perform camera calibration (None means it should calculate it)
-        ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
-            objectPoints=objpoints, # type: ignore
-            imagePoints=imgpoints, # type: ignore
-            imageSize=gray.shape[::-1], 
-            cameraMatrix=None, # type: ignore
-            distCoeffs=None # type: ignore
-        ) # type: ignore
+        if objpoints != None and imgpoints != None:
+            # Perform camera calibration (None means it should calculate it)
+            ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
+                objectPoints=objpoints, # type: ignore
+                imagePoints=imgpoints, # type: ignore
+                imageSize=gray.shape[::-1], 
+                cameraMatrix=None, # type: ignore
+                distCoeffs=None # type: ignore
+            ) # type: ignore
 
-        # Check calibration result
-        if ret:
-            print("Calibration successful.")
-            print("Camera Matrix:\n", mtx)
-            print("Distortion:\n", dist)
-            return CalibrationResult(
-                                    Distortion=dist,
-                                    CameraMatrix=mtx,
-                                    ObjectPoints=np.array(objpoints, dtype=np.float32),
-                                    ImagePoints=np.array(imgpoints, dtype=np.float32),
-                                    )
+            # Check calibration result
+            if ret:
+                print("Calibration successful.")
+                print("Camera Matrix:\n", mtx)
+                print("Distortion:\n", dist)
+                return CalibrationResult(
+                                        Distortion=dist,
+                                        CameraMatrix=mtx,
+                                        ObjectPoints=np.array(objpoints, dtype=np.float32),
+                                        ImagePoints=np.array(imgpoints, dtype=np.float32),
+                                        )
 
 

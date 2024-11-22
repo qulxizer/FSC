@@ -7,7 +7,7 @@ utils = Utils()
 
 
 left_cam = Camera(
-    cv.VideoCapture(2),
+    cv.VideoCapture(0),
     utils.loadCalibrationResultFrom("dataset/opencv_sample/left/calibration.npz"),
     "Left Camera",
     cv_index=0,
@@ -15,7 +15,7 @@ left_cam = Camera(
 )
 
 right_cam = Camera(
-    cv.VideoCapture(0),
+    cv.VideoCapture(2),
     utils.loadCalibrationResultFrom("dataset/opencv_sample/right/calibration.npz"),
     "Right Camera",
     cv_index=2,
@@ -28,11 +28,18 @@ stereo_camera = StereoCamera(
     right_camera=right_cam,
     params=StereoCalibrationParams(
         focal_length=None,
-        baseline=67,
-        block_size=17,
-        num_disparities=16 * 6,
+        baseline=5,
+        block_size=4,
+        num_disparities=16 * 7,
         min_disparity=0,
+        disp12MaxDiff=10,
+        uniquenessRatio=15,
+        speckle_window_size=50,
+        speckleRange=1,
     ),
 )
 
-# stereo_camera.Test()
+Limg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/left/left.png")
+Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/right/right.png")
+
+stereo_camera.Test(Limg, Rimg)

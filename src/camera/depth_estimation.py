@@ -39,15 +39,13 @@ class DepthEstimation(object):
         return StereoCalibrationResults(
             ret=ret,
             camera_matrix_left=camera_matrix_left,
-            dist_coeffs_left=dist_coeffs_left, # type: ignore
-            camera_matrix_right=camera_matrix_right, # type: ignore
+            dist_coeffs_left=dist_coeffs_left,
+            camera_matrix_right=camera_matrix_right,
             dist_coeffs_right=dist_coeffs_right,
             R=R,
             T=T,
             E=E,
             F=F
-
-
         ) # type: ignore
     
     def stereoUnDistort(self, Limg:cv.typing.MatLike, Limg_calib:CalibrationResult,
@@ -105,6 +103,16 @@ class DepthEstimation(object):
         if normalize:
             return cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8) # type: ignore
         return disparity
+    
+    def getDistance(self, disparity: cv.typing.MatLike, coordinates: tuple[int, int]) -> float:
+        x, y = coordinates
+        if self.focal_length is None or self.baseline is None:
+            raise ValueError("Focal length or baseline are None")
+        disparity_value = disparity[y, x]  # Use (y, x) for OpenCV image indexing
+        if disparity_value == 0:
+            raise ValueError(f"Disparity at {coordinates} is zero; depth is undefined.")
+        return (self.focal_length * self.baseline) / disparity_value
+
     
     def generateDepthMap(self, arg):
         pass

@@ -6,10 +6,14 @@ import numpy as np
 utils = Utils()
 
 left_camera_directory = sys.argv[1]
-res_left = utils.calibrateCamera(7,6, left_camera_directory, Format.JPG)
+
+# Y, X
+res_left = utils.calibrateCamera(6,9, left_camera_directory, Format.JPG)
 
 right_camera_directory = sys.argv[2]
-res_right = utils.calibrateCamera(7,6, right_camera_directory, Format.JPG)
+
+# Y, X
+res_right = utils.calibrateCamera(6,9, right_camera_directory, Format.JPG)
 
 # Ensure the lengths of valid images are the same
 if res_left is not None and res_right is not None:

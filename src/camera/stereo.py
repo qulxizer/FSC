@@ -29,6 +29,7 @@ class StereoCamera():
 
 
     def Test(self, Limg:cv.typing.MatLike, Rimg:cv.typing.MatLike):
+        h, w, c = Limg.shape        
         depth = DepthEstimation(
             params=self.stereo_calibration_params
         )
@@ -37,7 +38,6 @@ class StereoCamera():
                                 self.left_camera.calibration_result,
                                 self.right_camera.calibration_result)
 
-        h, w, c = Limg.shape        
 
         stereo_rectification_result = depth.stereoRectify(
             self.left_camera.calibration_result,
@@ -51,38 +51,23 @@ class StereoCamera():
                             Limg,self.left_camera.calibration_result,
                             Rimg,self.right_camera.calibration_result)
         
-        disparity = depth.generateDisparity(undistorted_Limg, undistorted_Rimg)
-
-        depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)[:, :, 2]  # Z channel is depth
-
-        # # Compute disparity
-        # disparity = stereo.compute(left_gray, right_gray).astype(np.float32)
-        # disparity_vis = cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX) # type: ignore
-        # disparity[disparity == 0] = 1e-5
-        # depth = (self.stereo_calibration_params.focal_length * self.stereo_calibration_params.baseline) / disparity # type: ignore
-        # depth_vis = cv.normalize(depth, None, 0, 255, cv.NORM_MINMAX) # type: ignore
-
-        # cv.imwrite("tmp/disparity.png", disparity_vis)
-        # cv.imwrite("tmp/depth_map.png", depth_vis)
+        # undistorted_Limg = cv.GaussianBlur(undistorted_Limg, (10,10), 5)
+        # undistorted_Rimg = cv.GaussianBlur(undistorted_Rimg, (10,10), 5)
 
         
-        # x, y = 150, 100
-        # # Get disparity value at the specific pixel
-        # d = disparity[y, x]
+        cv.imwrite("tmp/undistorted_Limg.png", undistorted_Limg)
+        cv.imwrite("tmp/undistorted_Rimg.png", undistorted_Rimg)
 
-        # # Avoid division by zero
-        # if d > 0:
-            
-        #     Z = (self.stereo_calibration_params.focal_length * self.stereo_calibration_params.baseline) / d # type: ignore
-        #     print(f"Depth (Z) at pixel ({x}, {y}): {Z:.2f} mm")
-        # else:
-        #     print(f"Disparity at pixel ({x}, {y}) is zero; depth is undefined.")
 
+        disparity = depth.generateDisparity(undistorted_Limg, undistorted_Rimg, False)
+        cv.imwrite("tmp/disparity.png", disparity)
 
         
-        # cv.imshow("Depth Map", depth_vis) # type: ignore
-        # cv.waitKey(0)
-        # cv.destroyAllWindows()
+        depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)  # Z channel is depth
+        cv.imwrite("tmp/depth_map.png", depth_map)
+
+        print(depth.getDistance(disparity, (350,250)))
+
 
         
 

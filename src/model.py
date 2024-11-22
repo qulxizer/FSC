@@ -18,8 +18,8 @@ class StereoCalibrationResults(object):
     """Docstring for StereoCalibrationResults."""
     ret: float
     camera_matrix_left: cv.typing.MatLike
-    dist_coeffs_right: cv.typing.MatLike
-    camera_matrix_left: cv.typing.MatLike
+    dist_coeffs_left: cv.typing.MatLike
+    camera_matrix_right: cv.typing.MatLike
     dist_coeffs_right: cv.typing.MatLike
     R: cv.typing.MatLike
     T:cv.typing.MatLike
