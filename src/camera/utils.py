@@ -77,11 +77,8 @@ class Utils(object):
             5
             ) # type: ignore
         dst = cv.remap(img,mapx,mapy,cv.INTER_LINEAR)
-        # dst = cv.undistort(img,calibResult.CameraMatrix, calibResult.Distortion, None, newcameramtx )
-        # return dst
-        
-        # undistorted_img = cv.undistort(img, calibResult.CameraMatrix, calibResult.Distortion, None, newcameramtx)
         return dst
+
 
     def captureImageToDirectory(self, camera:Camera,directory:str, key:int):
         """

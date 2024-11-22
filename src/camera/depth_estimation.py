@@ -1,38 +1,92 @@
 import cv2 as cv
-from model import StereoCalibrationParams , Camera, CalibrationResult
+from model import StereoCalibrationParams , Camera, CalibrationResult, StereoCalibrationResults, StereoRectificationResult
+from .utils import Utils
 import numpy as np
+
+utils = Utils()
+
 
 class DepthEstimation(object):
     """docstring for DepthEstimation."""
-    # def __init__(self, numDisparities:int, block_size:int, 
-    #             minDisparity:int, baseline:float,
-    #             focal_length:float):
-    #     self.minDisparities = minDisparity
-    #     self.numDisparities = numDisparities
-    #     self.block_size = block_size
-    #     self.baseline = baseline
-    #     self.focal_length = focal_length
 
     def __init__(self, params:StereoCalibrationParams):
         self.baseline = params.baseline
         self.focal_length = params.focal_length
         self.block_size = params.block_size
         self.disp12MaxDiff = params.disp12MaxDiff
-        self.minDisparity = params.minDisparity
-        self.numDisparities = params.numDisparities
+        self.minDisparity = params.min_disparity
+        self.numDisparities = params.num_disparities
         self.speckleRange = params.speckleRange
         self.disparity_range = params.disparity_range
         self.uniquenessRatio = params.uniquenessRatio
-        self.speckleWindowSize = params.speckleWindowSize
+        self.speckleWindowSize = params.speckle_window_size
 
-    def depthMap(self,
-                cam_left_result:CalibrationResult,
-                cam_right_result:CalibrationResult,
+    def stereoCalibrate(self, Lcam_calibration_result:CalibrationResult, Rcam_calibration_result:CalibrationResult) -> StereoCalibrationResults:
+
+        # ObjectPoints should be the same from the right and left image opencv only one
+        ret, camera_matrix_left, dist_coeffs_left, camera_matrix_right, dist_coeffs_right ,R ,T, E, F = cv.stereoCalibrate(
+            objectPoints=Lcam_calibration_result.ObjectPoints, # type: ignore
+            imagePoints1=Lcam_calibration_result.ImagePoints, # type: ignore
+            imagePoints2=Rcam_calibration_result.ImagePoints, # type: ignore
+            cameraMatrix1=Lcam_calibration_result.CameraMatrix,
+            cameraMatrix2=Rcam_calibration_result.CameraMatrix,
+            distCoeffs1=Lcam_calibration_result.Distortion,
+            distCoeffs2=Rcam_calibration_result.Distortion,
+            imageSize=(640,480),
+            criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_MAX_ITER, 100, 1e-5),
+            flags=cv.CALIB_FIX_INTRINSIC
+        ) # type: ignore
+        return StereoCalibrationResults(
+            ret=ret,
+            camera_matrix_left=camera_matrix_left,
+            dist_coeffs_left=dist_coeffs_left, # type: ignore
+            camera_matrix_right=camera_matrix_right, # type: ignore
+            dist_coeffs_right=dist_coeffs_right,
+            R=R,
+            T=T,
+            E=E,
+            F=F
+
+
+        ) # type: ignore
+    
+    def stereoUnDistort(self, Limg:cv.typing.MatLike, Limg_calib:CalibrationResult,
+                        Rimg:cv.typing.MatLike, Rimg_calib:CalibrationResult ) -> (cv.typing.MatLike, cv.typing.MatLike): # type: ignore
+        if Limg.shape != Rimg.shape:
+            ValueError("Left and Right images should be the same size")
+    
+        h, w, _ = Limg.shape
+        undistorted_Limg = utils.unDistortImage(Limg,Limg_calib, w=w, h=h)
+        undistorted_Rimg = utils.unDistortImage(Limg,Rimg_calib, w=w, h=h)
+
+        return undistorted_Limg,  undistorted_Rimg
+
+        
+    def stereoRectify(self, calib_left:CalibrationResult, calib_right: CalibrationResult, R,T, w:int,h:int) -> StereoRectificationResult:
+        R1, R2, P1, P2, Q, roi1, roi2 = cv.stereoRectify(
+            calib_left.CameraMatrix,
+            calib_left.Distortion,
+            calib_right.CameraMatrix,
+            calib_right.Distortion,
+            (w,h),
+            R,
+            T,
+            flags=cv.CALIB_ZERO_DISPARITY,
+            alpha=0
+        )
+        return StereoRectificationResult(
+            R1,
+            R2,
+            P1,
+            P2,
+            Q
+        )
+
+    def generateDisparity(self,
                 imgL:cv.typing.MatLike,
                 imgR:cv.typing.MatLike,
-                R,
-                T) -> (cv.typing.MatLike, cv.typing.MatLike):
-        """ This method takes two images and generate the depth map
+                normalize=False) -> cv.typing.MatLike:
+        """ This method takes two images and generate the disparity
         using cv.StereoSGBM. 
         """
 
@@ -48,42 +102,10 @@ class DepthEstimation(object):
             P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
             )
         disparity = stereo.compute(imgL,imgR)
-
-
-        R1, R2, P1, P2, Q, _, _ = cv.stereoRectify(
-            cameraMatrix1=cam_left_result.CameraMatrix,
-            distCoeffs1=cam_left_result.Distortion,
-            cameraMatrix2=cam_left_result.CameraMatrix,
-            distCoeffs2=cam_right_result.Distortion,
-            imageSize=(640,480),
-            R=R,
-            T=T,
-            )
-        
-        map1_left, map2_left = cv.initUndistortRectifyMap()
-
-        disparity_vis:cv.typing.MatLike = cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
-        depth_map = cv.reprojectImageTo3D(disparity_vis, Q)[:,:,2]
-
-        depth_map[np.isinf(depth_map)] = 0
-        depth_map[np.isnan(depth_map)] = 0
-        depth_map[depth_map <= 0] = 0
-
-        depth_vis:cv.typing.MatLike = cv.normalize(depth_map, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
-        # depth_vis = cv.applyColorMap(depth_vis, cv.COLORMAP_JET)        
-
-        return disparity_vis, depth_vis
+        if normalize:
+            return cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8) # type: ignore
+        return disparity
     
-    def getDistance(self, disparity:cv.typing.MatLike, x:int, y:int):
-        """ Get the distance from the disparity at pixel (x, y). """
-        d = disparity[y, x]  # Get the disparity value at (x, y)
-        
-        if d == 0:
-            return float('inf')  # If disparity is 0, the object is too far or no match
+    def generateDepthMap(self, arg):
+        pass
 
-        # Convert disparity to distance formula: Z = B*f / disparity
-        if self.focal_length != None:
-            distance = (self.focal_length * self.baseline) / d
-            return distance
-        else:
-            print("focal lenght is none!")

@@ -30,9 +30,9 @@ stereo_camera = StereoCamera(
         focal_length=None,
         baseline=67,
         block_size=17,
-        numDisparities=16 * 6,
-        minDisparity=0,
+        num_disparities=16 * 6,
+        min_disparity=0,
     ),
 )
 
-stereo_camera.Test()
+# stereo_camera.Test()

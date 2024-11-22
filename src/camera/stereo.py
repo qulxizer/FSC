@@ -22,67 +22,67 @@ class StereoCamera():
             # Getting left_camera focal length cause usually the left camera used as the refrence frame
             f_x = left_camera.calibration_result.CameraMatrix[0, 0]  # Focal length along the x-axis
             f_y = left_camera.calibration_result.CameraMatrix[1, 1]  # Focal length along the y-axis
-            params.focal_length = (f_x + f_y) / 2
+            self.stereo_calibration_params.focal_length = (f_x + f_y) / 2
+
+        
 
 
 
-    def Test(self):
+    def Test(self, Limg:cv.typing.MatLike, Rimg:cv.typing.MatLike):
         depth = DepthEstimation(
             params=self.stereo_calibration_params
         )
-        utils = Utils()
 
-        # ObjectPoints should be the same from the right and left image opencv only one
-        ret, camera_matrix_left, dist_coeffs_left, camera_matrix_right, dist_coeffs_right ,R ,T, E, F =cv.stereoCalibrate(
-            objectPoints=self.left_camera.calibration_result.ObjectPoints, # type: ignore
-            imagePoints1=self.left_camera.calibration_result.ImagePoints, # type: ignore
-            imagePoints2=self.right_camera.calibration_result.ImagePoints, # type: ignore
-            cameraMatrix1=self.left_camera.calibration_result.CameraMatrix,
-            cameraMatrix2=self.right_camera.calibration_result.CameraMatrix,
-            distCoeffs1=self.left_camera.calibration_result.Distortion,
-            distCoeffs2=self.right_camera.calibration_result.Distortion,
-            imageSize=(640,480),
-            criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_MAX_ITER, 100, 1e-5),
-            flags=cv.CALIB_FIX_INTRINSIC
-        ) # type: ignore
+        stereo_calibration_result = depth.stereoCalibrate(
+                                self.left_camera.calibration_result,
+                                self.right_camera.calibration_result)
 
-        Limg = cv.imread("dataset/opencv_sample/left/left.png")
-        Rimg = cv.imread("dataset/opencv_sample/right/right.png")
+        h, w, c = Limg.shape        
 
-        h, w, _ = Limg.shape
-        rectified_left = utils.unDistortImage(Limg, self.left_camera.calibration_result, w,h)
-        rectified_right = utils.unDistortImage(Rimg, self.right_camera.calibration_result, w,h)
+        stereo_rectification_result = depth.stereoRectify(
+            self.left_camera.calibration_result,
+            self.right_camera.calibration_result,
+            stereo_calibration_result.R,
+            stereo_calibration_result.T,
+            w,
+            h)
 
-        cv.imwrite("tmp/rectified_left.png", rectified_left)
-        cv.imwrite("tmp/rectified_right.png", rectified_right)
+        undistorted_Limg, undistorted_Rimg = depth.stereoUnDistort(
+                            Limg,self.left_camera.calibration_result,
+                            Rimg,self.right_camera.calibration_result)
+        
+        disparity = depth.generateDisparity(undistorted_Limg, undistorted_Rimg)
 
+        depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)[:, :, 2]  # Z channel is depth
 
-        # Create a StereoSGBM matcher
-        stereo = cv.StereoSGBM.create(
-            minDisparity=0,
-            numDisparities=16*2,  # Must be divisible by 16
-            blockSize=15,
-            P1=8 * 3 * 5**2,  # P1 and P2 are tuning parameters
-            P2=32 * 3 * 5**2,
-            uniquenessRatio=10,
-            speckleWindowSize=100,
-            speckleRange=32,
-            disp12MaxDiff=1
-        )
-        left_gray = cv.cvtColor(rectified_left, cv.COLOR_BGR2GRAY)
-        right_gray = cv.cvtColor(rectified_right, cv.COLOR_BGR2GRAY)
-
-        # Compute disparity
-        disparity = stereo.compute(left_gray, right_gray).astype(np.float32) / 16.0
+        # # Compute disparity
+        # disparity = stereo.compute(left_gray, right_gray).astype(np.float32)
         # disparity_vis = cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX) # type: ignore
-        disparity[disparity == 0] = 1e-5
-        depth = (self.stereo_calibration_params.focal_length * self.stereo_calibration_params.baseline) / disparity
-        depth_vis = cv.normalize(depth, None, 0, 255, cv.NORM_MINMAX)
-        depth_vis = np.uint8(depth_vis)
+        # disparity[disparity == 0] = 1e-5
+        # depth = (self.stereo_calibration_params.focal_length * self.stereo_calibration_params.baseline) / disparity # type: ignore
+        # depth_vis = cv.normalize(depth, None, 0, 255, cv.NORM_MINMAX) # type: ignore
 
-        cv.imshow("Depth Map", depth_vis)
-        cv.waitKey(0)
-        cv.destroyAllWindows()
+        # cv.imwrite("tmp/disparity.png", disparity_vis)
+        # cv.imwrite("tmp/depth_map.png", depth_vis)
+
+        
+        # x, y = 150, 100
+        # # Get disparity value at the specific pixel
+        # d = disparity[y, x]
+
+        # # Avoid division by zero
+        # if d > 0:
+            
+        #     Z = (self.stereo_calibration_params.focal_length * self.stereo_calibration_params.baseline) / d # type: ignore
+        #     print(f"Depth (Z) at pixel ({x}, {y}): {Z:.2f} mm")
+        # else:
+        #     print(f"Disparity at pixel ({x}, {y}) is zero; depth is undefined.")
+
+
+        
+        # cv.imshow("Depth Map", depth_vis) # type: ignore
+        # cv.waitKey(0)
+        # cv.destroyAllWindows()
 
         
 
