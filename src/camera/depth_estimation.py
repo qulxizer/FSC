@@ -41,11 +41,11 @@ class DepthEstimation(object):
 
 
         stereo = cv.StereoSGBM.create(
-            # minDisparity=self.minDisparity,
+            minDisparity=self.minDisparity,
             numDisparities=self.numDisparities,
             blockSize=self.block_size,
-            # P1=8 * 3 * self.block_size**2,  # Smoothness for small changes  
-            # P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
+            P1=8 * 3 * self.block_size**2,  # Smoothness for small changes  
+            P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
             )
         disparity = stereo.compute(imgL,imgR)
 

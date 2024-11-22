@@ -5,7 +5,11 @@ import json
 from time import time
 from model import Camera, CalibrationResult
 from .video_stream import VideoStream 
+from enum import Enum
 
+class Format(Enum):
+    JPG = "jpg"
+    PNG = "png"     
 
 class Utils(object):
     """Useful utilites."""
@@ -15,14 +19,14 @@ class Utils(object):
             data = json.load(f)
 
         # Convert the ImagePoints and ObjectPoints to lists of points
-        image_points = [np.array(points, np.float32).reshape(-1, 2) for points in data["ImagePoints"]]
-        object_points = [np.array(points, np.float32).reshape(-1, 3) for points in data["ObjectPoints"]]
+        imgpoints = [np.array(points, np.float32).reshape(-1, 2) for points in data["ImagePoints"]]
+        objpoints = [np.array(points, np.float32).reshape(-1, 3) for points in data["ObjectPoints"]]
 
         return CalibrationResult(
             Distortion=np.array(data["Distortion"], np.float32),
             CameraMatrix=np.array(data["CameraMatrix"], np.float32),
-            ImagePoints=image_points, # type: ignore
-            ObjectPoints=object_points, # type: ignore
+            ImagePoints=imgpoints, # type: ignore
+            ObjectPoints=objpoints, # type: ignore
         )
 
     def saveCalibrationResultJson(self, result: CalibrationResult, filename: str):
@@ -84,7 +88,7 @@ class Utils(object):
             vs.stop()
             cv.destroyAllWindows()
 
-    def calibrateCamera(self, num_columns:int ,num_rows:int, directory:str):
+    def calibrateCamera(self, num_columns:int ,num_rows:int, directory:str, image_type:Format=Format.PNG):
         """
         This utility method will pull image to the provided directory and
         calibrate the images based on the providednum of columns and rows
@@ -92,77 +96,59 @@ class Utils(object):
         # Termination criteria
         criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-        # Create base object points for a single image
-        objp = np.zeros((num_columns * num_rows, 3), np.float32)
-        grid_x, grid_y = np.mgrid[0:num_columns, 0:num_rows]
-        objp[:,:2] = np.vstack((grid_x.flatten(), grid_y.flatten())).T
-
-        # Arrays to store object points and image points from all the images
-        object_points  = []
-        image_points = []
+        # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+        objp = np.zeros((num_columns*num_rows,3), np.float32)
+        objp[:,:2] = np.mgrid[0:num_rows,0:num_columns].T.reshape(-1,2)
+        
+        # Arrays to store object points and image points from all the images.
+        objpoints = [] # 3d point in real world space
+        imgpoints = [] # 2d points in image plane.
 
         # Load all the image files
-        image_files = glob.glob(f"{directory}*.png")
-        print(f"Looking for images in: {directory}")
+        images = glob.glob(f"{directory}*.{image_type.value}")
 
-        gray_image = None
         # Iterate through each image
-        for image_file in image_files:
-            # Read the image
-            image = cv.imread(image_file)
-            if image is None:
-                print(f"Failed to load image: {image_file}")
-                continue
-
-            # Convert the image to grayscale for corner detection
-            gray_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-
-            # Find the chessboard corners in the image
-            is_found, corners = cv.findChessboardCorners(gray_image, (num_columns, num_rows), None)
-
-            # If corners are found, refine them and store them
-            if is_found:
-                object_points.append(objp.copy())  # Add a copy of objp to each successful detection
-                refined_corners = cv.cornerSubPix(gray_image, corners, (11, 11), (-1, -1), criteria)
-                image_points.append(refined_corners)
-                
+        grey = None
+        for fname in images:
+            img = cv.imread(fname)
+            gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+            # Find the chess board corners
+            ret, corners = cv.findChessboardCorners(gray, (num_rows,num_columns), None)
+        
+            # If found, add object points, image points (after refining them)
+            if ret == True:
+                objpoints.append(objp)
+        
+                corners2 = cv.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
+                imgpoints.append(corners2)
+        
                 # Draw and display the corners
-                cv.drawChessboardCorners(image, (num_columns, num_rows), refined_corners, is_found)
-                cv.imshow('Chessboard Corners', image)
-                cv.waitKey(500)
-
+                cv.drawChessboardCorners(img, (num_rows,num_columns), corners2, ret)
+                cv.imshow('img', img)
+                cv.waitKey(50)
+        
         cv.destroyAllWindows()
 
-        if gray_image is not None and len(object_points) > 0:
-            # Convert lists to numpy arrays as required by calibrateCamera
-            object_points_array = np.array(object_points, dtype=np.float32)
-            image_points_array = np.array(image_points, dtype=np.float32)
             
-            # Perform camera calibration (None means it should calculate it)
-            ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
-                objectPoints=object_points_array, # type: ignore
-                imagePoints=image_points_array, # type: ignore
-                imageSize=gray_image.shape[::-1], 
-                cameraMatrix=None, # type: ignore
-                distCoeffs=None # type: ignore
-            ) # type: ignore
+        # Perform camera calibration (None means it should calculate it)
+        ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
+            objectPoints=objpoints, # type: ignore
+            imagePoints=imgpoints, # type: ignore
+            imageSize=gray.shape[::-1], 
+            cameraMatrix=None, # type: ignore
+            distCoeffs=None # type: ignore
+        ) # type: ignore
 
-            # Check calibration result
-            if ret:
-                print("Calibration successful.")
-                print("Camera Matrix:\n", mtx)
-                print("Distortion:\n", dist)
-                return CalibrationResult(
-                                        Distortion=dist,
-                                        CameraMatrix=mtx,
-                                        ObjectPoints=object_points_array,
-                                        ImagePoints=image_points_array,
-                                        )
-            else:
-                print("Calibration failed.")
-        else:
-            print("No valid images were found for calibration.")
+        # Check calibration result
+        if ret:
+            print("Calibration successful.")
+            print("Camera Matrix:\n", mtx)
+            print("Distortion:\n", dist)
+            return CalibrationResult(
+                                    Distortion=dist,
+                                    CameraMatrix=mtx,
+                                    ObjectPoints=np.array(objpoints, dtype=np.float32),
+                                    ImagePoints=np.array(imgpoints, dtype=np.float32),
+                                    )
 
-    def calibrateStereo(self, Lcam:Camera, Rcam:Camera):
-        pass
-        # cv.stereoCalibrate()
+
