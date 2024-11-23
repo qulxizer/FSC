@@ -42,9 +42,8 @@ pip install -r requirements.txt
 
 Downloading the dataset for the detector:
 1. Get Apikey from [universe.roboflow](https://universe.roboflow.com)
-2. Run ```make download_dataset ARGS="<<APIKEY_HERE>> dataset/tomato_checker"```
+2. Run ```make downloadDataset dataset/tomato_checker"```
 3. Change ```dataset/tomato_checker/data.yaml``` paths to full path like this: ```
-
 train: /home/$USER/PATH-TO-REPO/dataset/tomato_checker/valid
 val: /home/$USER/PATH-TO-REPO/dataset/tomato_checker/valid/images
 test: /home/$USER/PATH-TO-REPO/dataset/tomato_checker/test/images
