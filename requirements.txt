@@ -8,9 +8,11 @@ numpy
 matplotlib
 PyQt6
 
-# object detection
+# object detection & dataset prep
 ultralytics
 roboflow
+# openvino==2024.5.0
+openvino-dev[torch]
 
 # training
 torch

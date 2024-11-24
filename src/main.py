@@ -1,6 +1,7 @@
 from model import Camera, StereoCalibrationParams
 from camera.stereo import StereoCamera
 from camera.utils import Utils
+from detector.Detector import Detector
 import cv2 as cv
 
 utils = Utils()
@@ -42,4 +43,10 @@ stereo_camera = StereoCamera(
 Limg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/left/left.png")
 Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/right/right.png")
 
-stereo_camera.Test(Limg, Rimg)
+# stereo_camera.Test(Limg, Rimg)
+
+detector = Detector("/home/qulx/Dev/FSC/models/best.pt")
+img = cv.imread("/home/qulx/Dev/FSC/tmp/20241124_205817.jpg")
+img = cv.resize(img, (500,1000))
+detector.detect(img)
+# detector.benchmark()
