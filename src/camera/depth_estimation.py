@@ -1,5 +1,5 @@
 import cv2 as cv
-from model import StereoCalibrationParams , Camera, CalibrationResult, StereoCalibrationResults, StereoRectificationResult
+from model import DepthEstimationParams , Camera, CalibrationResult, StereoCalibrationResults, StereoRectificationResult
 from .utils import Utils
 import numpy as np
 
@@ -9,7 +9,7 @@ utils = Utils()
 class DepthEstimation(object):
     """docstring for DepthEstimation."""
 
-    def __init__(self, params:StereoCalibrationParams):
+    def __init__(self, results:StereoCalibrationResults, params:DepthEstimationParams):
         self.baseline = params.baseline
         self.focal_length = params.focal_length
         self.block_size = params.block_size
@@ -20,34 +20,8 @@ class DepthEstimation(object):
         self.disparity_range = params.disparity_range
         self.uniquenessRatio = params.uniquenessRatio
         self.speckleWindowSize = params.speckle_window_size
+        self.stereoCalibrationResult = results
 
-    def stereoCalibrate(self, Lcam_calibration_result:CalibrationResult, Rcam_calibration_result:CalibrationResult) -> StereoCalibrationResults:
-
-        # ObjectPoints should be the same from the right and left image opencv only one
-        ret, camera_matrix_left, dist_coeffs_left, camera_matrix_right, dist_coeffs_right ,R ,T, E, F = cv.stereoCalibrate(
-            objectPoints=Lcam_calibration_result.ObjectPoints, # type: ignore
-            imagePoints1=Lcam_calibration_result.ImagePoints, # type: ignore
-            imagePoints2=Rcam_calibration_result.ImagePoints, # type: ignore
-            cameraMatrix1=Lcam_calibration_result.CameraMatrix,
-            cameraMatrix2=Rcam_calibration_result.CameraMatrix,
-            distCoeffs1=Lcam_calibration_result.Distortion,
-            distCoeffs2=Rcam_calibration_result.Distortion,
-            imageSize=(640,480),
-            criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_MAX_ITER, 100, 1e-5),
-            flags=cv.CALIB_FIX_INTRINSIC
-        ) # type: ignore
-        return StereoCalibrationResults(
-            ret=ret,
-            camera_matrix_left=camera_matrix_left,
-            dist_coeffs_left=dist_coeffs_left,
-            camera_matrix_right=camera_matrix_right,
-            dist_coeffs_right=dist_coeffs_right,
-            R=R,
-            T=T,
-            E=E,
-            F=F
-        ) # type: ignore
-    
     def stereoUnDistort(self, Limg:cv.typing.MatLike, Limg_calib:CalibrationResult,
                         Rimg:cv.typing.MatLike, Rimg_calib:CalibrationResult ) -> (cv.typing.MatLike, cv.typing.MatLike): # type: ignore
         if Limg.shape != Rimg.shape:
@@ -111,7 +85,7 @@ class DepthEstimation(object):
         disparity_value = disparity[y, x]  # Use (y, x) for OpenCV image indexing
         if disparity_value == 0:
             print(f"Disparity at {coordinates} is zero; depth is undefined.")
-        return (self.focal_length * self.baseline) / disparity_value
+        return (self.focal_length * self.baseline) / disparity_value # type: ignore
 
     
     def generateDepthMap(self, arg):

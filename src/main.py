@@ -1,5 +1,5 @@
 import time
-from model import Camera, StereoCalibrationParams
+from model import Camera, DepthEstimationParams
 from camera.stereo import StereoCamera
 from camera.utils import Utils
 from camera.video_stream import VideoStream
@@ -31,8 +31,7 @@ right_cam = Camera(
 stereo_camera = StereoCamera(
     left_camera=left_cam,
     right_camera=right_cam,
-    params=StereoCalibrationParams(
-        focal_length=None,
+    params=DepthEstimationParams(
         baseline=87,
         block_size=4,
         num_disparities=16 * 2,
@@ -42,6 +41,7 @@ stereo_camera = StereoCamera(
         speckle_window_size=50,
         speckleRange=1,
     ),
+    results=utils.loadStereoCalibrationResultFrom("/home/qulx/Dev/FSC/dataset/opencv_sample/stereoCalibraton.npz")
 )
 
 Limg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/left/left.png")
@@ -53,10 +53,13 @@ Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/right/right.png")
 # time.sleep(100)
 # cv.imshow("Right Image", Rimg)
 disparity = stereo_camera.Test(Limg, Rimg)
-cv.imshow(
-    "Disparity", cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)
-)  # type: ignore
+cv.imshow("Disparity",cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)) # type: ignore
 cv.waitKey(1)
+# cv.imshow(
+#     "Disparity", cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8) # type: ignore
+# )  # type: ignore
+# cv.waitKey(1)
+time.sleep(100)
 
 # img = cv.imread("/home/qulx/Dev/FSC/tmp/20241124_205817.jpg")
 # img = cv.resize(img, (500,1000))

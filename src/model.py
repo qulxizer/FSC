@@ -10,23 +10,19 @@ class CalibrationResult(object):
     ObjectPoints: np.ndarray
     ImagePoints: np.ndarray
 
-from dataclasses import dataclass
-
 
 @dataclass
 class StereoCalibrationResults(object):
     """Docstring for StereoCalibrationResults."""
-    ret: float
-    camera_matrix_left: cv.typing.MatLike
-    dist_coeffs_left: cv.typing.MatLike
-    camera_matrix_right: cv.typing.MatLike
-    dist_coeffs_right: cv.typing.MatLike
+    left_camera_matrix: cv.typing.MatLike
+    left_dist_coeffs: cv.typing.MatLike
+    right_camera_matrix: cv.typing.MatLike
+    right_dist_coeffs: cv.typing.MatLike
     R: cv.typing.MatLike
     T:cv.typing.MatLike
     E:cv.typing.MatLike
     F:cv.typing.MatLike
-
-from dataclasses import dataclass
+    ret: float = 0
 
 
 @dataclass
@@ -41,14 +37,14 @@ class StereoRectificationResult(object):
     
     
 @dataclass
-class StereoCalibrationParams:
+class DepthEstimationParams:
     """Stereo vision parameters for calibration and depth estimation.
         leave focal_length empty if you want to automaticly generate it.
     """
     
     # Camera calibration parameters
-    focal_length: None                      # Default focal length (in pixels)
-    baseline: float                         # Default baseline (distance between cameras in mm)
+    baseline: float 
+    focal_length: float = 0.0
     
     # Stereo matching parameters
     min_disparity: int = 0                    # Default min disparity (in pixels)

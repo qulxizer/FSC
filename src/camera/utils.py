@@ -3,7 +3,7 @@ import cv2 as cv
 import numpy as np
 import json
 from time import time
-from model import Camera, CalibrationResult
+from model import Camera, CalibrationResult, StereoCalibrationResults
 from .video_stream import VideoStream 
 from enum import Enum
 
@@ -31,6 +31,32 @@ class Utils(object):
                             ImagePoints=result.ImagePoints,
                             ObjectPoints=result.ObjectPoints,
                             )
+        
+    def saveStereoCalibrationResult(self, result: StereoCalibrationResults, filename: str):
+        # Convert the calibration result back into a dictionary
+        np.savez_compressed(filename,
+                            LeftCameraMatrix=result.left_camera_matrix,
+                            RightCameraMatrix=result.right_camera_matrix,
+                            DistCoeffsLeft=result.left_dist_coeffs,
+                            DistCoeffsRight=result.right_dist_coeffs,
+                            E=result.E,
+                            F=result.F,
+                            R=result.R,
+                            T=result.T,
+                            )
+        
+    def loadStereoCalibrationResultFrom(self, filename:str) -> StereoCalibrationResults:
+        data = np.load(filename)
+        return StereoCalibrationResults(
+            data["LeftCameraMatrix"],
+            data["DistCoeffsLeft"],
+            data["RightCameraMatrix"],
+            data["DistCoeffsRight"],
+            data["R"],
+            data["T"],
+            data["E"],
+            data["F"],
+        )
 
 
     def listPorts(self, num:int):

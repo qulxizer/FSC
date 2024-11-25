@@ -9,8 +9,8 @@ getImages:
 listPorts:
 	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/listPorts.py"
 
-# left first + use full path please
-# usage: make calibrate "/home/$USER/repo-location/dataset/our_dataset/calibration/left_camera/" "/home/$USER/repo-location/dataset/our_dataset/calibration/right_camera/"
+# left camera directory + right camera directory + Stereo calibration location + use full path please
+# usage: make calibrate ARGS="/home/$USER/repo-location/dataset/our_dataset/calibration/left_camera/ /home/$USER/repo-location/dataset/our_dataset/calibration/right_camera/ /home/$USER/repo-location/dataset/our_dataset/calibration/"
 calibrate:
 	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/calibrate.py $(ARGS)"
 
