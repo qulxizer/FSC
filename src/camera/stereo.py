@@ -34,18 +34,18 @@ class StereoCamera():
             params=self.stereo_calibration_params
         )
 
-        # stereo_calibration_result = depth.stereoCalibrate(
-        #                         self.left_camera.calibration_result,
-        #                         self.right_camera.calibration_result)
+        stereo_calibration_result = depth.stereoCalibrate(
+                                self.left_camera.calibration_result,
+                                self.right_camera.calibration_result)
 
 
-        # stereo_rectification_result = depth.stereoRectify(
-        #     self.left_camera.calibration_result,
-        #     self.right_camera.calibration_result,
-        #     stereo_calibration_result.R,
-        #     stereo_calibration_result.T,
-        #     w,
-        #     h)
+        stereo_rectification_result = depth.stereoRectify(
+            self.left_camera.calibration_result,
+            self.right_camera.calibration_result,
+            stereo_calibration_result.R,
+            stereo_calibration_result.T,
+            w,
+            h)
 
         undistorted_Limg, undistorted_Rimg = depth.stereoUnDistort(
                             Limg,self.left_camera.calibration_result,
@@ -55,16 +55,16 @@ class StereoCamera():
         # undistorted_Rimg = cv.GaussianBlur(undistorted_Rimg, (10,10), 5)
 
         
-        # cv.imwrite("tmp/undistorted_Limg.png", undistorted_Limg)
-        # cv.imwrite("tmp/undistorted_Rimg.png", undistorted_Rimg)
+        cv.imwrite("tmp/undistorted_Limg.png", undistorted_Limg)
+        cv.imwrite("tmp/undistorted_Rimg.png", undistorted_Rimg)
 
 
         disparity = depth.generateDisparity(undistorted_Limg, undistorted_Rimg, False)
-        # cv.imwrite("tmp/disparity.png", disparity)
+        cv.imwrite("tmp/disparity.png", disparity)
 
         
-        # depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)  # Z channel is depth
-        # cv.imwrite("tmp/depth_map.png", depth_map)
+        depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)  # Z channel is depth
+        cv.imwrite("tmp/depth_map.png", depth_map)
 
         print(depth.getDistance(disparity, (180, 155)))
         return disparity

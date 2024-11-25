@@ -31,7 +31,6 @@ class Detector():
         """
         results = self.yolo.predict(img, show=True, conf=0.25)
         time.sleep(100)
-        
         print(results)
 
     def benchmark(self):

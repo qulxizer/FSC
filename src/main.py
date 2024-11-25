@@ -1,3 +1,4 @@
+import time
 from model import Camera, StereoCalibrationParams
 from camera.stereo import StereoCamera
 from camera.utils import Utils
@@ -43,20 +44,18 @@ stereo_camera = StereoCamera(
     ),
 )
 
-# Limg = cv.imread("/home/raspberry/FSC/dataset/our_dataset/calibration2/Tleft/1732513638.6453598.png")
-# Rimg = cv.imread("/home/raspberry/FSC/dataset/our_dataset/calibration2/Tright/1732513638.6639345.png")
+Limg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/left/left.png")
+Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/right/right.png")
 
-while True:
-    res, Limg = left_cam.capture.read()
-    res, Rimg = right_cam.capture.read()
-    cv.imshow("Left Image", Limg)
-    # cv.imshow("Right Image", Rimg)
-    disparity = stereo_camera.Test(Limg, Rimg)
-    cv.imshow("Disparity", cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8))
+# res, Limg = left_cam.capture.read()
+# res, Rimg = right_cam.capture.read()
+cv.imshow("Left Image", Limg)
+time.sleep(100)
 
-    if cv.waitKey(1) & 0xFF == ord("q"):
-        break
-cv.destroyAllWindows()
+# cv.imshow("Right Image", Rimg)
+disparity = stereo_camera.Test(Limg, Rimg)
+cv.imshow("Disparity", cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)) # type: ignore
+time.sleep(100)
 # detector = Detector("/home/qulx/Dev/FSC/models/best.pt")
 # img = cv.imread("/home/qulx/Dev/FSC/tmp/20241124_205817.jpg")
 # img = cv.resize(img, (500,1000))

@@ -8,12 +8,12 @@ utils = Utils()
 left_camera_directory = sys.argv[1]
 
 # Y, X
-res_left = utils.calibrateCamera(6,8, left_camera_directory, Format.PNG)
+res_left = utils.calibrateCamera(6,9, left_camera_directory, Format.JPG)
 
 right_camera_directory = sys.argv[2]
 
 # Y, X
-res_right = utils.calibrateCamera(6,8, right_camera_directory, Format.PNG)
+res_right = utils.calibrateCamera(6,9, right_camera_directory, Format.JPG)
 
 if res_left == None:
     print("Right Result is empty")
