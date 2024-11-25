@@ -107,10 +107,10 @@ class DepthEstimation(object):
     def getDistance(self, disparity: cv.typing.MatLike, coordinates: tuple[int, int]) -> float:
         x, y = coordinates
         if self.focal_length is None or self.baseline is None:
-            raise ValueError("Focal length or baseline are None")
+            print("Focal length or baseline are None")
         disparity_value = disparity[y, x]  # Use (y, x) for OpenCV image indexing
         if disparity_value == 0:
-            raise ValueError(f"Disparity at {coordinates} is zero; depth is undefined.")
+            print(f"Disparity at {coordinates} is zero; depth is undefined.")
         return (self.focal_length * self.baseline) / disparity_value
 
     

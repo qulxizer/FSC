@@ -29,7 +29,7 @@ stereo_camera = StereoCamera(
     right_camera=right_cam,
     params=StereoCalibrationParams(
         focal_length=None,
-        baseline=10,
+        baseline=87,
         block_size=4,
         num_disparities=16 * 7,
         min_disparity=0,
@@ -40,13 +40,20 @@ stereo_camera = StereoCamera(
     ),
 )
 
-Limg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/left/left.png")
-Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/right/right.png")
+# Limg = cv.imread("/home/raspberry/FSC/dataset/our_dataset/calibration2/Tleft/1732513638.6453598.png")
+# Rimg = cv.imread("/home/raspberry/FSC/dataset/our_dataset/calibration2/Tright/1732513638.6639345.png")
 
-# stereo_camera.Test(Limg, Rimg)
-
-detector = Detector("/home/qulx/Dev/FSC/models/best.pt")
-img = cv.imread("/home/qulx/Dev/FSC/tmp/20241124_205817.jpg")
-img = cv.resize(img, (500,1000))
-detector.detect(img)
+while True:
+    res, Limg = left_cam.capture.read()
+    res, Rimg = right_cam.capture.read()
+    # cv.imshow("Left Image", Limg)
+    # cv.imshow("Right Image", Rimg)
+    stereo_camera.Test(Limg, Rimg)
+    if cv.waitKey(1) & 0xFF == ord("q"):
+        break
+cv.destroyAllWindows()
+# detector = Detector("/home/qulx/Dev/FSC/models/best.pt")
+# img = cv.imread("/home/qulx/Dev/FSC/tmp/20241124_205817.jpg")
+# img = cv.resize(img, (500,1000))
+# detector.detect(img)
 # detector.benchmark()

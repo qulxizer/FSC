@@ -107,6 +107,42 @@ class Utils(object):
             vs.stop()
             cv.destroyAllWindows()
 
+    def captureStereoImage(self, Lcamera:Camera, Rcamera:Camera, Ldirectory:str, Rdirectory:str, key:int):
+        Lvs = VideoStream(camera=Lcamera)
+        Rvs = VideoStream(camera=Rcamera)
+
+        try:
+            while True:
+                Lframe = Lvs.read()
+                Rframe = Rvs.read()
+
+                cv.imshow(Lcamera.name, Lframe)
+                cv.imshow(Rcamera.name, Rframe)
+
+                if cv.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+                # check if capture key is pressed it capture image
+                if cv.waitKey(1) & 0xFF == key:
+                    filename = f"{Ldirectory}{str(time())}.png"
+                    ret = cv.imwrite(filename, Lframe)
+                    if not ret:
+                        print("Failed to write frame.")
+                        return 
+                    print(f"{filename}, save successfuly")
+
+                    filename = f"{Rdirectory}{str(time())}.png"
+                    ret = cv.imwrite(filename, Rframe)
+                    if not ret:
+                        print("Failed to write frame.")
+                        return 
+                    print(f"{filename}, save successfuly")
+        finally:
+            Lvs.stop()
+            Rvs.stop()
+
+            cv.destroyAllWindows()
+
     def calibrateCamera(self, num_columns:int ,num_rows:int, directory:str, image_type:Format=Format.PNG):
         """
         This utility method will pull image to the provided directory and
@@ -125,7 +161,8 @@ class Utils(object):
 
         # Load all the image files
         images = glob.glob(f"{directory}*.{image_type.value}")
-
+        if images == []:
+            FileNotFoundError("couldn't find any files in directory, check you path please")
         # Iterate through each image
         grey = None
         for fname in images:
@@ -149,7 +186,7 @@ class Utils(object):
                 cv.drawChessboardCorners(img, (num_rows,num_columns), corners2, ret)
                 cv.imshow('img', img)
                 cv.waitKey(500)
-        
+
         cv.destroyAllWindows()
 
         if objpoints != None and imgpoints != None:
@@ -157,7 +194,7 @@ class Utils(object):
             ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(
                 objectPoints=objpoints, # type: ignore
                 imagePoints=imgpoints, # type: ignore
-                imageSize=gray.shape[::-1], 
+                imageSize=(640, 480), 
                 cameraMatrix=None, # type: ignore
                 distCoeffs=None # type: ignore
             ) # type: ignore
