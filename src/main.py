@@ -5,6 +5,7 @@ from camera.utils import Utils
 from camera.video_stream import VideoStream
 from detector.Detector import Detector
 import numpy as np
+from matplotlib import pyplot as plt
 import cv2 as cv
 
 utils = Utils()
@@ -33,9 +34,9 @@ stereo_camera = StereoCamera(
     right_camera=right_cam,
     params=DepthEstimationParams(
         baseline=87,
-        block_size=4,
-        num_disparities=16 * 2,
-        min_disparity=8,
+        block_size=7,
+        num_disparities=16 * 4,
+        min_disparity=-1,
         disp12MaxDiff=10,
         uniquenessRatio=15,
         speckle_window_size=50,
@@ -44,24 +45,18 @@ stereo_camera = StereoCamera(
     results=utils.loadStereoCalibrationResultFrom("/home/qulx/Dev/FSC/dataset/opencv_sample/stereoCalibraton.npz")
 )
 
-Limg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/left/left.png")
-Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/opencv_sample/right/right.png")
-# res, Limg = left_cam.capture.read()
-# res, Rimg = right_cam.capture.read()
-# cv.imshow("Left Image", Limg)
-# cv.waitKey(1)
-# time.sleep(100)
-# cv.imshow("Right Image", Rimg)
-disparity = stereo_camera.Test(Limg, Rimg)
-cv.imshow("Disparity",cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8)) # type: ignore
-cv.waitKey(1)
-# cv.imshow(
-#     "Disparity", cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8) # type: ignore
-# )  # type: ignore
-# cv.waitKey(1)
-time.sleep(100)
+Limg = cv.imread("/home/qulx/Dev/FSC/dataset/our_dataset/calibration2/Tleft/1732513638.6453598.png")
+Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/our_dataset/calibration2/Tright/1732513638.6639345.png")
 
-# img = cv.imread("/home/qulx/Dev/FSC/tmp/20241124_205817.jpg")
-# img = cv.resize(img, (500,1000))
-# detector.detect(img)
-# detector.benchmark()
+while True:
+    ret, Lframe = left_cam.capture.read()
+    ret, Rframe = left_cam.capture.read()
+    disparity = stereo_camera.Test(Lframe, Rframe)
+    cv.imshow(
+        "Disparity", cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX) # type: ignore
+    )
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        break
+
+
+cv.destroyAllWindows()

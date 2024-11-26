@@ -29,9 +29,9 @@ class DepthEstimation(object):
     
         h, w, _ = Limg.shape
         undistorted_Limg = utils.unDistortImage(Limg,Limg_calib, w=w, h=h)
-        undistorted_Rimg = utils.unDistortImage(Limg,Rimg_calib, w=w, h=h)
+        undistorted_Rimg = utils.unDistortImage(Rimg,Rimg_calib, w=w, h=h)
 
-        return undistorted_Limg,  undistorted_Rimg
+        return undistorted_Limg, undistorted_Rimg
 
         
     def stereoRectify(self, calib_left:CalibrationResult, calib_right: CalibrationResult, R,T, w:int,h:int) -> StereoRectificationResult:
@@ -72,6 +72,7 @@ class DepthEstimation(object):
             blockSize=self.block_size,
             P1=8 * 3 * self.block_size**2,  # Smoothness for small changes  
             P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
+            mode=cv.STEREO_SGBM_MODE_HH
             )
         disparity = stereo.compute(imgL,imgR)
         if normalize:
@@ -79,6 +80,8 @@ class DepthEstimation(object):
         return disparity
     
     def getDistance(self, disparity: cv.typing.MatLike, coordinates: tuple[int, int]) -> float:
+        print(self.focal_length)
+        print(self.baseline)
         x, y = coordinates
         if self.focal_length is None or self.baseline is None:
             print("Focal length or baseline are None")

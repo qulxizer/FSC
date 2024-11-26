@@ -42,12 +42,12 @@ def stereoCalibrate(Lcam_calibration_result:CalibrationResult, Rcam_calibration_
     
 
 # Y, X
-res_left = utils.calibrateCamera(6,9, left_camera_directory, Format.JPG)
+res_left = utils.calibrateCamera(6,8, left_camera_directory, Format.PNG)
 
 right_camera_directory = sys.argv[2]
 
 # Y, X
-res_right = utils.calibrateCamera(6,9, right_camera_directory, Format.JPG)
+res_right = utils.calibrateCamera(6,8, right_camera_directory, Format.PNG)
 
 if res_left == None:
     print("Right Result is empty")

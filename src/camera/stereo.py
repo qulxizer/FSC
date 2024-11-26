@@ -21,7 +21,7 @@ class StereoCamera():
         self.right_camera = right_camera
         self.stereo_calibration_params = params
         self.stereo_calibration_results = results
-        if params.focal_length == None:
+        if params.focal_length == 0:
             # Getting left_camera focal length cause usually the left camera used as the refrence frame
             f_x = left_camera.calibration_result.CameraMatrix[0, 0]  # Focal length along the x-axis
             f_y = left_camera.calibration_result.CameraMatrix[1, 1]  # Focal length along the y-axis
@@ -31,7 +31,7 @@ class StereoCamera():
 
 
     def Test(self, Limg:cv.typing.MatLike, Rimg:cv.typing.MatLike):
-        h, w, c = Limg.shape        
+        h, w, c = Limg.shape  
         depth = DepthEstimation(
             params=self.stereo_calibration_params,
             results=self.stereo_calibration_results
@@ -62,9 +62,9 @@ class StereoCamera():
         cv.imwrite("tmp/disparity.png", disparity)
 
         
+        print(depth.getDistance(disparity, (160,360)))
         depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)  # Z channel is depth
         cv.imwrite("tmp/depth_map.png", depth_map)
-
         
         return disparity
 
