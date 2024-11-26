@@ -73,4 +73,4 @@ if res_left != None and res_right != None:
 
     utils.saveCalibrationResult(res_left, left_camera_directory + "calibration")
     utils.saveCalibrationResult(res_right, right_camera_directory + "calibration")
-    utils.saveStereoCalibrationResult(stereoRes, stereo_calibration_location + "stereoCalibraton")
+    utils.saveStereoCalibrationResult(stereoRes, stereo_calibration_location + "stereoCalibration")

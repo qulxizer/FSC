@@ -89,16 +89,16 @@ class Utils(object):
 
 
 
-    def unDistortImage(self, img:cv.typing.MatLike, calibResult:CalibrationResult, w:int,h:int) -> cv.typing.MatLike:
+    def unDistortImage(self, img:cv.typing.MatLike, 
+                       K, D, R, P, w:int,h:int) -> cv.typing.MatLike:
 
         # # Refining the camera matrix using parameters obtained by calibration
-        newcameramtx, roi = cv.getOptimalNewCameraMatrix(calibResult.CameraMatrix, calibResult.Distortion, (w,h), 1, (w,h))
         
         mapx,mapy=cv.initUndistortRectifyMap(
-            calibResult.CameraMatrix,
-            calibResult.Distortion,
-            None, # type: ignore
-            newcameramtx,
+            K,
+            D,
+            R, # type: ignore
+            P,
             (w,h),
             5
             ) # type: ignore

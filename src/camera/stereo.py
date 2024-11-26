@@ -39,35 +39,50 @@ class StereoCamera():
 
 
         stereo_rectification_result = depth.stereoRectify(
-            self.left_camera.calibration_result,
-            self.right_camera.calibration_result,
+            self.left_camera.calibration_result.CameraMatrix,
+            self.left_camera.calibration_result.Distortion,
+            self.right_camera.calibration_result.CameraMatrix,
+            self.right_camera.calibration_result.Distortion,
             self.stereo_calibration_results.R,
             self.stereo_calibration_results.T,
             w,
             h)
 
         undistorted_Limg, undistorted_Rimg = depth.stereoUnDistort(
-                            Limg,self.left_camera.calibration_result,
-                            Rimg,self.right_camera.calibration_result)
+            Limg,
+            self.left_camera.calibration_result.CameraMatrix,
+            self.left_camera.calibration_result.Distortion,
+            stereo_rectification_result.R1,
+            stereo_rectification_result.P1,
+            
+            Rimg,
+            self.right_camera.calibration_result.CameraMatrix,
+            self.right_camera.calibration_result.Distortion,
+            stereo_rectification_result.R2,
+            stereo_rectification_result.P2,
+
+        )
         
         # undistorted_Limg = cv.GaussianBlur(undistorted_Limg, (10,10), 5)
         # undistorted_Rimg = cv.GaussianBlur(undistorted_Rimg, (10,10), 5)
+        Ldisparity, Lmatcher = depth.generateDisparity(Limg, Rimg)
 
-        
-        cv.imwrite("tmp/undistorted_Limg.png", undistorted_Limg)
-        cv.imwrite("tmp/undistorted_Rimg.png", undistorted_Rimg)
+        right_matcher = cv.ximgproc.createRightMatcher(Lmatcher);
+        left_disp = Lmatcher.compute(Limg, Rimg);
+        right_disp = right_matcher.compute(Rimg,Limg);
 
 
-        disparity = depth.generateDisparity(undistorted_Limg, undistorted_Rimg, False)
-        cv.imwrite("tmp/disparity.png", disparity)
+        sigma = 1.5
+        lmbda = 8000.0
+        wls_filter = cv.ximgproc.createDisparityWLSFilter(Lmatcher);
+        wls_filter.setLambda(lmbda);
+        wls_filter.setSigmaColor(sigma);
+        filtered_disp = wls_filter.filter(left_disp, Limg, disparity_map_right=right_disp);
 
-        
-        print(depth.getDistance(disparity, (160,360)))
-        depth_map = cv.reprojectImageTo3D(disparity, stereo_rectification_result.Q)  # Z channel is depth
-        cv.imwrite("tmp/depth_map.png", depth_map)
-        
-        return disparity
-
+        print(depth.getDistance(filtered_disp, (430,400)))
+        # color_depth_map = cv.applyColorMap(filtered_disp, cv.COLORMAP_JET)
+        # disparity_normalized = cv.normalize(Ldisparity, None, 0, 255, cv.NORM_MINMAX) # type: ignore
+        return filtered_disp
 
 
         

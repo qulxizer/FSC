@@ -22,29 +22,43 @@ class DepthEstimation(object):
         self.speckleWindowSize = params.speckle_window_size
         self.stereoCalibrationResult = results
 
-    def stereoUnDistort(self, Limg:cv.typing.MatLike, Limg_calib:CalibrationResult,
-                        Rimg:cv.typing.MatLike, Rimg_calib:CalibrationResult ) -> (cv.typing.MatLike, cv.typing.MatLike): # type: ignore
+    def stereoUnDistort(self, Limg:cv.typing.MatLike,K1,D1,R1,P1,
+                        Rimg:cv.typing.MatLike,K2,D2,R2,P2) -> tuple[cv.typing.MatLike, cv.typing.MatLike]:
+
         if Limg.shape != Rimg.shape:
             ValueError("Left and Right images should be the same size")
     
         h, w, _ = Limg.shape
-        undistorted_Limg = utils.unDistortImage(Limg,Limg_calib, w=w, h=h)
-        undistorted_Rimg = utils.unDistortImage(Rimg,Rimg_calib, w=w, h=h)
-
+        undistorted_Limg = utils.unDistortImage(
+            Limg,
+            K1,
+            D1,
+            R1,
+            P1,
+            w,
+            h
+        )
+        undistorted_Rimg = utils.unDistortImage(
+            Rimg,
+            K2,
+            D2,
+            R2,
+            P2,
+            w,
+            h
+        )
         return undistorted_Limg, undistorted_Rimg
 
         
-    def stereoRectify(self, calib_left:CalibrationResult, calib_right: CalibrationResult, R,T, w:int,h:int) -> StereoRectificationResult:
+    def stereoRectify(self, K1, D1, K2, D2, R, T, w,h) -> StereoRectificationResult:
         R1, R2, P1, P2, Q, roi1, roi2 = cv.stereoRectify(
-            calib_left.CameraMatrix,
-            calib_left.Distortion,
-            calib_right.CameraMatrix,
-            calib_right.Distortion,
+            K1,
+            D1,
+            K2,
+            D2,
             (w,h),
             R,
-            T,
-            flags=cv.CALIB_ZERO_DISPARITY,
-            alpha=0
+            T
         )
         return StereoRectificationResult(
             R1,
@@ -56,32 +70,26 @@ class DepthEstimation(object):
 
     def generateDisparity(self,
                 imgL:cv.typing.MatLike,
-                imgR:cv.typing.MatLike,
-                normalize=False) -> cv.typing.MatLike:
+                imgR:cv.typing.MatLike,) -> tuple[cv.typing.MatLike, cv.StereoSGBM]:
         """ This method takes two images and generate the disparity
         using cv.StereoSGBM. 
         """
 
         imgL = cv.cvtColor(imgL, cv.COLOR_BGR2GRAY)
         imgR = cv.cvtColor(imgR, cv.COLOR_BGR2GRAY)
-
-
+        
         stereo = cv.StereoSGBM.create(
             minDisparity=self.minDisparity,
             numDisparities=self.numDisparities,
             blockSize=self.block_size,
             P1=8 * 3 * self.block_size**2,  # Smoothness for small changes  
             P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
-            mode=cv.STEREO_SGBM_MODE_HH
+            mode=cv.STEREO_SGBM_MODE_SGBM_3WAY
             )
         disparity = stereo.compute(imgL,imgR)
-        if normalize:
-            return cv.normalize(disparity, None, 0, 255, cv.NORM_MINMAX).astype(np.uint8) # type: ignore
-        return disparity
+        return disparity, stereo
     
     def getDistance(self, disparity: cv.typing.MatLike, coordinates: tuple[int, int]) -> float:
-        print(self.focal_length)
-        print(self.baseline)
         x, y = coordinates
         if self.focal_length is None or self.baseline is None:
             print("Focal length or baseline are None")
