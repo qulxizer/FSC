@@ -92,13 +92,14 @@ class Utils(object):
     def unDistortImage(self, img:cv.typing.MatLike, 
                        K, D, R, P, w:int,h:int) -> cv.typing.MatLike:
 
+        Nmtx, roi = cv.getOptimalNewCameraMatrix(K, D, (w,h), 1, (w,h))
         # # Refining the camera matrix using parameters obtained by calibration
         
         mapx,mapy=cv.initUndistortRectifyMap(
             K,
             D,
-            R, # type: ignore
-            P,
+            None, # type: ignore
+            Nmtx,
             (w,h),
             5
             ) # type: ignore

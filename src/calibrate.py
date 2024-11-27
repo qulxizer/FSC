@@ -1,16 +1,14 @@
 import sys
 from camera.utils import Utils, Format
-from camera.stereo import StereoCamera
 from model import CalibrationResult, StereoCalibrationResults
-import numpy as np
-from pathlib import Path
 import cv2 as cv
 
 
 utils = Utils()
 
+datasetDirectory = sys.argv[1]
 
-left_camera_directory = sys.argv[1]
+left_camera_directory = f"{datasetDirectory}/left/"
 
 
 def stereoCalibrate(Lcam_calibration_result:CalibrationResult, Rcam_calibration_result:CalibrationResult) -> StereoCalibrationResults:
@@ -44,7 +42,7 @@ def stereoCalibrate(Lcam_calibration_result:CalibrationResult, Rcam_calibration_
 # Y, X
 res_left = utils.calibrateCamera(6,8, left_camera_directory, Format.PNG)
 
-right_camera_directory = sys.argv[2]
+right_camera_directory = f"{datasetDirectory}/right/"
 
 # Y, X
 res_right = utils.calibrateCamera(6,8, right_camera_directory, Format.PNG)
@@ -54,7 +52,7 @@ if res_left == None:
 if res_right == None:
     print("Left Result is empty")
 
-stereo_calibration_location = sys.argv[3]
+stereo_calibration_location = f"{datasetDirectory}/"
 
 
 

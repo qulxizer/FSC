@@ -62,27 +62,25 @@ class StereoCamera():
             stereo_rectification_result.P2,
 
         )
-        
-        # undistorted_Limg = cv.GaussianBlur(undistorted_Limg, (10,10), 5)
-        # undistorted_Rimg = cv.GaussianBlur(undistorted_Rimg, (10,10), 5)
+        # undistorted_Limg = cv.GaussianBlur(undistorted_Limg, (10,10), 10)
+        # undistorted_Rimg = cv.GaussianBlur(undistorted_Rimg, (10,10), 10)
         Ldisparity, Lmatcher = depth.generateDisparity(Limg, Rimg)
 
-        right_matcher = cv.ximgproc.createRightMatcher(Lmatcher);
-        left_disp = Lmatcher.compute(Limg, Rimg);
-        right_disp = right_matcher.compute(Rimg,Limg);
+        right_matcher = cv.ximgproc.createRightMatcher(Lmatcher)
+        Rdisparity = right_matcher.compute(Rimg,Limg)
 
 
-        sigma = 1.5
+        sigma = 4
         lmbda = 8000.0
-        wls_filter = cv.ximgproc.createDisparityWLSFilter(Lmatcher);
-        wls_filter.setLambda(lmbda);
-        wls_filter.setSigmaColor(sigma);
-        filtered_disp = wls_filter.filter(left_disp, Limg, disparity_map_right=right_disp);
+        wls_filter = cv.ximgproc.createDisparityWLSFilter(Lmatcher)
+        wls_filter.setLambda(lmbda)
+        wls_filter.setSigmaColor(sigma)
+        filtered_disp = wls_filter.filter(Ldisparity, Limg, disparity_map_right=Rdisparity)
 
+        disparity_normalized = cv.normalize(filtered_disp, None, 0, 255, cv.NORM_MINMAX, dtype=cv.CV_8UC1) # type: ignore
         print(depth.getDistance(filtered_disp, (430,400)))
-        # color_depth_map = cv.applyColorMap(filtered_disp, cv.COLORMAP_JET)
-        # disparity_normalized = cv.normalize(Ldisparity, None, 0, 255, cv.NORM_MINMAX) # type: ignore
-        return filtered_disp
+        # color_depth_map = cv.applyColorMap(disparity_normalized, cv.COLORMAP_JET)
+        return disparity_normalized
 
 
         
