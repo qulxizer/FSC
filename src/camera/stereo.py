@@ -48,7 +48,7 @@ class StereoCamera():
             w,
             h)
 
-        undistorted_Limg, undistorted_Rimg = depth.stereoUnDistort(
+        Limg, Rimg = depth.stereoUnDistort(
             Limg,
             self.left_camera.calibration_result.CameraMatrix,
             self.left_camera.calibration_result.Distortion,
@@ -62,6 +62,9 @@ class StereoCamera():
             stereo_rectification_result.P2,
 
         )
+        cv.imwrite("tmp/undist_limg.png", Limg)
+        cv.imwrite("tmp/undist_rimg.png", Rimg)
+
         # undistorted_Limg = cv.GaussianBlur(undistorted_Limg, (10,10), 10)
         # undistorted_Rimg = cv.GaussianBlur(undistorted_Rimg, (10,10), 10)
         Ldisparity, Lmatcher = depth.generateDisparity(Limg, Rimg)
