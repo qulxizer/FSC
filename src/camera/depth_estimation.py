@@ -75,21 +75,40 @@ class DepthEstimation(object):
         using cv.StereoSGBM. 
         """
 
-        imgL = cv.cvtColor(imgL, cv.COLOR_BGR2GRAY)
-        imgR = cv.cvtColor(imgR, cv.COLOR_BGR2GRAY)
+        # imgL = cv.cvtColor(imgL, cv.COLOR_BGR2GRAY)
+        # imgR = cv.cvtColor(imgR, cv.COLOR_BGR2GRAY)
         
         stereo = cv.StereoSGBM.create(
             minDisparity=self.minDisparity,
             numDisparities=self.numDisparities,
             blockSize=self.block_size,
-            P1=8 * 3 * self.block_size**2,  # Smoothness for small changes  
-            P2=32 * 3 * self.block_size**2, # Keeps edges sharp  
-            mode=cv.STEREO_SGBM_MODE_SGBM_3WAY
+            P1=8 * self.block_size**2,  # Smoothness for small changes  
+            P2=32 * self.block_size**2, # Keeps edges sharp  
+            mode=cv.STEREO_SGBM_MODE_HH
             )
         disparity = stereo.compute(imgL,imgR)
         return disparity, stereo
     
+
     def getDistance(self, disparity: cv.typing.MatLike, coordinates: tuple[int, int]) -> float:
+        """
+            Calculate the distance from the provided map on the specified coordinates.
+            
+            Parameters:
+            Disparity (cv.typing.MatLike): The disparity map as a matrix-like object,
+            representing pixel differences between the left and right stereo images.
+
+            Coordinates (tuple[int, int]): The X,Y coordinates to calculate the distance for.
+
+            Returns:
+            float: real life distance, the unit is based on focal length and baseline usually
+            it is measured in MM.
+
+            Example:
+            >>> getDistance(disparity, (320,240))
+            320.0533334
+        """
+
         x, y = coordinates
         if self.focal_length is None or self.baseline is None:
             print("Focal length or baseline are None")

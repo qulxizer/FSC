@@ -6,11 +6,12 @@ from camera.video_stream import VideoStream
 from detector.Detector import Detector
 import numpy as np
 from matplotlib import pyplot as plt
+
 import cv2 as cv
 
 utils = Utils()
 
-datasetDirectory = "/home/raspberry/FSC/dataset/our_dataset/calibration2"
+datasetDirectory = "/home/qulx/Dev/FSC/dataset/our_dataset/calibration3"
 
 
 left_cam = Camera(
@@ -36,34 +37,20 @@ stereo_camera = StereoCamera(
     right_camera=right_cam,
     params=DepthEstimationParams(
         baseline=67,
-        block_size=4,
-        num_disparities=96,
+        block_size=2,
+        num_disparities=16 * 6,
         min_disparity=0,
         disp12MaxDiff=10,
-        uniquenessRatio=0,
+        uniquenessRatio=15,
         speckle_window_size=10,
         speckleRange=1,
     ),
     results=utils.loadStereoCalibrationResultFrom(f"{datasetDirectory}/stereoCalibration.npz")
 )
 
-Limg = cv.imread("/home/raspberry/FSC/dataset/our_dataset/calibration2/Tleft/1732513638.6453598.png")
-Rimg = cv.imread("/home/raspberry/FSC/dataset/our_dataset/calibration2/Tright/1732513638.6639345.png")
+Limg = cv.imread("/home/qulx/Dev/FSC/dataset/our_dataset/calibration3/left/1732698042.099758.png")
+Rimg = cv.imread("/home/qulx/Dev/FSC/dataset/our_dataset/calibration3/right/1732698042.1186182.png")
 
-while True:    
-    ret, Lframe = left_cam.capture.read()
-    ret, Rframe = right_cam.capture.read()
-    map = stereo_camera.Test(Lframe, Rframe)
-    cv.imshow("Map", map)
-    # cv.imshow("Right Image", Rimg)
+stereo_camera.displayDisparityMap(Limg, Rimg, "Disparity Map")
 
-
-    if cv.waitKey(1) & 0xFF == ord("q"):
-        break
-    # plt.imshow(depth_map, "grey")
-    # plt.show()
-
-
-cv.destroyAllWindows()
-# cv.waitKey()
     
