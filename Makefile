@@ -1,25 +1,6 @@
-PYTHONPATH := $(shell pwd)/src
+init:
+	mkdir build
 
 run:
-	python3 ./src/main.py
-
-getImages:
-	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/getImages.py"
-
-listPorts:
-	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/listPorts.py"
-
-# left camera directory + right camera directory + Stereo calibration location + use full path please
-# usage: make calibrate ARGS="/home/$USER/repo-location/dataset/our_dataset/calibration/left_camera/ /home/$USER/repo-location/dataset/our_dataset/calibration/right_camera/ /home/$USER/repo-location/dataset/our_dataset/calibration/"
-calibrate:
-	sh -c "PYTHONPATH=$(PYTHONPATH) python3 ./src/calibrate.py $(ARGS)"
-
-
-downloadDataset:
-	-mkdir $(DOWNLOAD_DIRECTORY)
-	curl -L -o $(DOWNLOAD_DIRECTORY)/tomato_checker.zip https://universe.roboflow.com/ds/Z3DdGaSUAo?key=rR58Mle25h
-	unzip $(DOWNLOAD_DIRECTORY)/tomato_checker.zip -d $(DOWNLOAD_DIRECTORY)
-	rm $(DOWNLOAD_DIRECTORY)/tomato_checker.zip
-
-train:
-	python3 ./src/training.py  
+	g++ -o build/build src/main.cpp $$(pkg-config --cflags --libs opencv4 freenect2)
+	build/build

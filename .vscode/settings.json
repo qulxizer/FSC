@@ -1,9 +1,13 @@
 {
-    "cSpell.enableFiletypes": [
-        "!python"
-    ],
+    "C_Cpp.errorSquiggles": "enabled",
     "cSpell.words": [
-        "PYTHONPATH",
-        "roboflow"
+        "Freenect",
+        "imshow",
+        "Kinect",
+        "LBUTTONDOWN",
+        "libfreenect",
+        "opencv",
+        "undistort",
+        "undistortion"
     ]
 }

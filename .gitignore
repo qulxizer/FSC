@@ -1,15 +1,1 @@
-venv/
-__pycache__/
-*.pyc
-
-#pytest
-.pytest_cache
-
-tomato_checker/
-roboflow/
-
-runs/
-
-tmp/
-
-# yolo11n.pt
+build/
