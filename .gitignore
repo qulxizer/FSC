@@ -1,2 +1,6 @@
 build/
+<<<<<<< Updated upstream
+=======
+tmp/
+>>>>>>> Stashed changes
 venv/

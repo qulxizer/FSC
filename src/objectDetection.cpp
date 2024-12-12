@@ -7,20 +7,23 @@ using namespace std;
 using namespace cv;
 using namespace dnn;
 
-int main() {
+int main()
+{
     // Load class names
     vector<string> class_names = {"damaged", "healthy ripe", "unripe"};
 
     // Load ONNX model
     auto model = readNetFromONNX("models/best.onnx");
-    if (model.empty()) {
+    if (model.empty())
+    {
         cerr << "Error: Could not load the ONNX model." << endl;
         return -1;
     }
 
     // Read and preprocess the input image
     Mat image = imread("tmp/tomato.jpg");
-    if (image.empty()) {
+    if (image.empty())
+    {
         cerr << "Error: Could not read input image." << endl;
         return -1;
     }
@@ -35,7 +38,8 @@ int main() {
     Mat detectionMat(output.size[2], output.size[1], CV_32F, output.ptr<float>());
 
     // Iterate through detections
-    for (int i = 0; i < detectionMat.rows; i++) {
+    for (int i = 0; i < detectionMat.rows; i++)
+    {
         float confidence = detectionMat.at<float>(i, 2);
         int class_id = static_cast<int>(detectionMat.at<float>(i, 1));
 
