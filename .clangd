@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-I/usr/include/, -I/usr/include/opencv2/]
+  Add: [-I/usr/include/, -Isrc/, -I/usr/include/opencv4]
