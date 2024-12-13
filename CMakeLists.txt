@@ -23,7 +23,7 @@ find_path(FREENECT2_INCLUDE_DIR libfreenect2/libfreenect2.hpp REQUIRED)
 include_directories(${FREENECT2_INCLUDE_DIR})
 
 # Create the library or executable
-add_executable(main src/main.cpp ${SOURCES})
+add_executable(main src/ipc.cpp ${SOURCES})
 
 # Link libraries
 target_link_libraries(main ${OpenCV_LIBS} ${FREENECT2_LIBRARIES})
