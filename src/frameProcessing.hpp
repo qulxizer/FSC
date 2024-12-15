@@ -9,6 +9,7 @@ void previewFrame(
     cv::Mat &depthMat,
     libfreenect2::Freenect2Device *device); // Pass Mat by reference
 void processFrame(libfreenect2::Frame *depthFrame,
+                  libfreenect2::Frame *colorFrame,
                   libfreenect2::Freenect2Device *device);
 
 #endif // FRAMEPROCESSING_H

@@ -17,7 +17,10 @@ void captureFrames(libfreenect2::SyncMultiFrameListener *listener,
 
     // Get the depth frame and process it
     libfreenect2::Frame *depthFrame = frames[libfreenect2::Frame::Depth];
-    processFrame(depthFrame, device);
+    libfreenect2::Frame *rgbFrame = frames[libfreenect2::Frame::Color];
+
+    // sendCvMatToSharedMemory(const cv::Mat &mat, const std::string &shmName)
+    processFrame(depthFrame, rgbFrame, device);
 
     // Release the frames after processing
     listener->release(frames);

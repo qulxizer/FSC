@@ -1,9 +1,13 @@
 #include "calculation.hpp"
+#include "ipc.hpp"
+#include "opencv2/core/hal/interface.h"
+#include "opencv2/imgproc.hpp"
 #include <iostream>
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
 #include <opencv4/opencv2/opencv.hpp>
+#include <unistd.h>
 
 struct CallbackData {
   cv::Mat depthMat;
@@ -35,8 +39,9 @@ void mouseCallback(int event, int x, int y, int flags, void *userdata) {
   }
 }
 
-void previewFrame(cv::Mat *depthMat, libfreenect2::Freenect2Device *device) {
-  cv::imshow("Depth Frame", *depthMat);
+void previewFrame(cv::Mat *depthMat, cv::Mat *coloredMat,
+                  libfreenect2::Freenect2Device *device) {
+  cv::imshow("Depth Frame", *coloredMat);
 
   CallbackData data = {*depthMat, device};
   cv::setMouseCallback("Depth Frame", mouseCallback, &data);
@@ -46,27 +51,33 @@ void previewFrame(cv::Mat *depthMat, libfreenect2::Freenect2Device *device) {
 }
 
 void processFrame(libfreenect2::Frame *depthFrame,
+                  libfreenect2::Frame *colorFrame,
                   libfreenect2::Freenect2Device *device) {
   if (!depthFrame)
     return;
 
-  // Use OpenCV Mat to process the depth frame
-  cv::Mat depthMat(depthFrame->height, depthFrame->width, CV_32FC1,
-                   depthFrame->data);
-  depthMat = depthMat;
   // Create a registration object for undistortion
   libfreenect2::Registration registration(device->getIrCameraParams(),
                                           device->getColorCameraParams());
+
   libfreenect2::Frame unDistortedDepth(depthFrame->width, depthFrame->height,
                                        4);
 
   // Perform the undistortion
   registration.undistortDepth(depthFrame, &unDistortedDepth);
 
-  // Now convert the undistorted depth data to OpenCV Mat
-  cv::Mat undistortedMat(unDistortedDepth.height, unDistortedDepth.width,
-                         CV_32FC1, unDistortedDepth.data);
+  cv::Mat unDistortedDepthMat(unDistortedDepth.height, unDistortedDepth.width,
+                              CV_8UC4, unDistortedDepth.data);
+
+  cv::Mat colorMat(colorFrame->height, colorFrame->width, CV_8UC4,
+                   colorFrame->data);
+
+  cv::resize(colorMat, colorMat,
+             cv::Size(unDistortedDepthMat.cols, unDistortedDepthMat.rows));
+  printf("cols: %i rows: %i\n", colorMat.cols, colorMat.rows);
+  // Sending the frame to python script using ipc shared memory
+  sendCvMatToSharedMemory(colorMat, "shared_image");
 
   // previewing Frame
-  previewFrame(&undistortedMat, device);
+  previewFrame(&unDistortedDepthMat, &colorMat, device);
 }
