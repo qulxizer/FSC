@@ -1,4 +1,5 @@
 #include "frameProcessing.hpp"
+#include "ipc.hpp"
 #include <iostream>
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/libfreenect2.hpp>

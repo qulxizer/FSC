@@ -1,16 +1,21 @@
+#include <boost/interprocess/creation_tags.hpp>
+#include <boost/interprocess/detail/os_file_functions.hpp>
+#include <boost/interprocess/exceptions.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
-#include <cstring> // for memcpy
+#include <chrono>
+#include <cstdio>
+#include <cstring>
 #include <opencv4/opencv2/opencv.hpp>
 
-void sendCvMatToSharedMemory(const cv::Mat &coloredMat,
-                             const std::string &shmName) {
+void writeCvMatToSharedMemory(const cv::Mat &coloredMat,
+                              const std::string &shmName) {
   // Calculate the total size needed
   size_t dataSize = coloredMat.total() * coloredMat.elemSize();
 
   // Create shared memory
   boost::interprocess::shared_memory_object shm(
-      boost::interprocess::create_only, shmName.c_str(),
+      boost::interprocess::open_or_create, shmName.c_str(),
       boost::interprocess::read_write);
   shm.truncate(dataSize);
 
@@ -23,17 +28,53 @@ void sendCvMatToSharedMemory(const cv::Mat &coloredMat,
   printf("frame has been sent to %s \n", shmName.c_str());
 }
 
-// int main() {
-//   // Example: Read an image
-//   cv::Mat image = cv::imread("tmp/tomato.jpg", cv::IMREAD_COLOR);
-//   if (image.empty()) {
-//     std::cerr << "Failed to load image\n";
-//     return -1;
-//   }
-//
-//   // Send the image to shared memory
-//   sendCvMatToSharedMemory(image, "shared_image");
-//
-//   std::cout << "Image sent to shared memory.\n";
-//   return 0;
-// }
+void writeDataToSharedMemory(const void *data, const std::size_t &size,
+                             const std::string &shmName) {
+
+  boost::interprocess::shared_memory_object shm(
+      boost::interprocess::open_or_create, shmName.c_str(),
+      boost::interprocess::read_write);
+
+  shm.truncate(size);
+
+  boost::interprocess::mapped_region region(shm,
+                                            boost::interprocess::read_write);
+
+  std::memcpy(region.get_address(), data, size);
+  printf("data has been sent to %s \n", shmName.c_str());
+}
+
+std::pair<void *, std::size_t>
+readDataFromSharedMemory(const std::string &shmName,
+                         const std::chrono::milliseconds &timeout) {
+  auto start = std::chrono::high_resolution_clock::now();
+  while (true) {
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    if (timeout.count() < duration.count()) {
+      printf("Timeout exceeded while reading %s \n", shmName.c_str());
+      exit(1);
+    }
+
+    try {
+      boost::interprocess::shared_memory_object shm(
+          boost::interprocess::open_only, shmName.c_str(),
+          boost::interprocess::read_only);
+
+      boost::interprocess::mapped_region region(shm,
+                                                boost::interprocess::read_only);
+      return {region.get_address(), region.get_size()};
+
+    } catch (boost::interprocess::interprocess_exception &e) {
+      if (errno == ENOENT) {
+        continue;
+      } else {
+        printf("Error opening shared memory: %s", e.what());
+      }
+    }
+  }
+
+  printf("failed to receive data at %s \n", shmName.c_str());
+  return {nullptr, 0};
+}

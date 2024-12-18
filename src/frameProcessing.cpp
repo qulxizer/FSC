@@ -2,11 +2,14 @@
 #include "ipc.hpp"
 #include "opencv2/core/hal/interface.h"
 #include "opencv2/imgproc.hpp"
+#include <chrono>
+#include <cstdio>
 #include <iostream>
 #include <libfreenect2/frame_listener_impl.h>
 #include <libfreenect2/libfreenect2.hpp>
 #include <libfreenect2/registration.h>
 #include <opencv4/opencv2/opencv.hpp>
+#include <string>
 #include <unistd.h>
 
 struct CallbackData {
@@ -76,8 +79,19 @@ void processFrame(libfreenect2::Frame *depthFrame,
              cv::Size(unDistortedDepthMat.cols, unDistortedDepthMat.rows));
   printf("cols: %i rows: %i\n", colorMat.cols, colorMat.rows);
   // Sending the frame to python script using ipc shared memory
-  sendCvMatToSharedMemory(colorMat, "shared_image");
+  writeCvMatToSharedMemory(colorMat, "shared_image");
 
+  auto [rawData, size] = readDataFromSharedMemory(
+      "2d_coordinates", std::chrono::milliseconds(1000000000000000));
+  //
+  // if (!rawData) {
+  //   std::cerr << "Error: rawData is nullptr." << std::endl;
+  //   exit(1);
+  // }
+  // const char *json_data = static_cast<const char *>(rawData);
+  // std::string json_string(json_data);
+
+  // std::cout << json_string;
   // previewing Frame
   previewFrame(&unDistortedDepthMat, &colorMat, device);
 }
