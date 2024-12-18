@@ -39,12 +39,22 @@ def writeJsonToSharedMemory(name, data: list):
     json_data = json.dumps(data)
     print(json_data)
     json_bytes = json_data.encode("utf-8")
+
     try:
-        shm = shared_memory.SharedMemory(name=name, create=True, size=len(json_data))
-        np.ndarray(len(json_bytes), dtype=np.uint8, buffer=shm.buf)
-        np.frombuffer(json_bytes, dtype=np.uint8)
-    except FileExistsError:
+        # Try to open shared memory, it will raise FileExistsError if it already exists
         shm = shared_memory.SharedMemory(name=name)
+        print(f"Shared memory with name {name} already exists. Overwriting...")
+        # Unlink the existing shared memory before overwriting
+        shm.unlink()
+    except FileNotFoundError:
+        # Shared memory does not exist, no need to unlink
+        pass
+    
+    # Create shared memory with the correct size
+    shm = shared_memory.SharedMemory(name=name, create=True, size=len(json_bytes))
+    # Write the JSON bytes to the shared memory buffer
+    np.copyto(np.ndarray(len(json_bytes), dtype=np.uint8, buffer=shm.buf), np.frombuffer(json_bytes, dtype=np.uint8))
+    print(f"JSON data written to shared memory {name}.")
 
 
 def listener(shm_name: str):
@@ -59,9 +69,10 @@ def listener(shm_name: str):
     while True:
         try:
             image, shm = readSharedCvmat(shm_name, imageShape, imageDtype)
+            detectionsJson = []
+
             try:
                 # Perform model inference
-
                 cv2.waitKey(1)  # Display the image (non-blocking wait)
                 results_list = model.predict(source=image[:, :, :3], show=True)
 
@@ -76,11 +87,10 @@ def listener(shm_name: str):
                             bboxs = b.tolist()
                             detections = []
                             for bbox, className in zip(bboxs, c):
-                                xCenter = (bbox[0] + bbox[2]) / 2
-                                yCenter = (bbox[1] + bbox[3]) / 2
+                                xCenter = (bbox[0] + bbox[2]) / 2 # type: ignore
+                                yCenter = (bbox[1] + bbox[3]) / 2 # type: ignore
                                 detections.append([xCenter, yCenter, className.item()])
 
-                            detectionsJson = []
                             for detection in detections:
                                 xCenter = detection[0]
                                 yCenter = detection[1]
@@ -95,6 +105,15 @@ def listener(shm_name: str):
                                     f"xCenter: {xCenter}, yCenter: {yCenter}, , Class: {detectionClass.name}"
                                 )
                             writeJsonToSharedMemory("2d_coordinates", detectionsJson)
+                
+                # if no detection were found
+                
+                if len(detectionsJson) < 1:
+                    detectionsJson = {
+                        "message": "no detections were found"
+                    }
+                    writeJsonToSharedMemory("2d_coordinates", detectionsJson) # type: ignore
+
 
             finally:
                 shm.unlink()  # Free the shared memory

@@ -1,5 +1,5 @@
 run:
 	@-mkdir build
-	cmake build/
-	make build/
+	(cd build && cmake ..)
+	make -C build/
 	build/main

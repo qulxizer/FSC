@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <opencv4/opencv2/opencv.hpp>
+#include <boost/interprocess/mapped_region.hpp>
 #include <stdlib.h>
 #include <utility>
 
@@ -10,7 +11,7 @@ void writeCvMatToSharedMemory(const cv::Mat &mat, const std::string &shmName);
 void writeDataToSharedMemory(const void *data, const std::size_t *size,
                              const std::string &shmName);
 
-std::pair<void *, std::size_t>
+boost::interprocess::mapped_region
 readDataFromSharedMemory(const std::string &shmName,
                          const std::chrono::milliseconds &timeout);
 #endif

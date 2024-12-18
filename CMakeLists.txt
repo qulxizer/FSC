@@ -16,6 +16,7 @@ include_directories(src)
 
 # Find required packages
 find_package(OpenCV REQUIRED)
+find_package(Boost 1.40 COMPONENTS program_options REQUIRED)
 
 find_library(FREENECT2_LIBRARIES freenect2 REQUIRED)
 find_path(FREENECT2_INCLUDE_DIR libfreenect2/libfreenect2.hpp REQUIRED)

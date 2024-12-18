@@ -4,8 +4,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/onnxruntime/",
-                "/usr/include/opencv4",
+                "/usr/include/opencv4/",
+                "/usr/include/boost/",
                 "/usr/include/",
                 "${workspaceFolder}/src"
             ],
@@ -17,8 +17,8 @@
             "browse": {
                 "path": [
                     "${workspaceFolder}/**",
-                    "/usr/include/onnxruntime/",
-                    "/usr/include/opencv4",
+                    "/usr/include/opencv4/",
+                    "/usr/include/boost/",
                     "/usr/include/"
                 ],
                 "limitSymbolsToIncludedHeaders": true
