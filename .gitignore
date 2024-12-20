@@ -1,6 +1,4 @@
 build/
-<<<<<<< Updated upstream
-=======
 tmp/
->>>>>>> Stashed changes
 venv/
+__pycache__/
