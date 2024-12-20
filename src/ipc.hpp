@@ -6,9 +6,7 @@
 
 #ifndef FRAMEPROCESSING_H // Header guards
 #define FRAMEPROCESSING_H
-void writeCvMatToSharedMemory(const cv::Mat &mat, const std::string &shmName);
-
-void writeDataToSharedMemory(const void *data, const std::size_t *size,
+void writeDataToSharedMemory(const void *data, const std::size_t &size,
                              const std::string &shmName);
 
 boost::interprocess::mapped_region

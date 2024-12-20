@@ -79,18 +79,20 @@ void processFrame(libfreenect2::Frame *depthFrame,
 
   // Perform the undistortion
   registration.undistortDepth(depthFrame, &unDistortedDepth);
-
   cv::Mat unDistortedDepthMat(unDistortedDepth.height, unDistortedDepth.width,
                               CV_8UC4, unDistortedDepth.data);
 
+  // Creating mat from the colored frame
   cv::Mat colorMat(colorFrame->height, colorFrame->width, CV_8UC4,
                    colorFrame->data);
 
   cv::resize(colorMat, colorMat,
              cv::Size(unDistortedDepthMat.cols, unDistortedDepthMat.rows));
   printf("cols: %i rows: %i\n", colorMat.cols, colorMat.rows);
+
   // Sending the frame to python script using ipc shared memory
-  writeCvMatToSharedMemory(colorMat, "shared_image");
+  size_t matSize = colorMat.total() * colorMat.elemSize();
+  writeDataToSharedMemory(colorMat.data, matSize, "shared_image");
 
   // readDataFromSharedMemory returns std::pair<void *, std::size_t>
   boost::interprocess::mapped_region region = readDataFromSharedMemory(

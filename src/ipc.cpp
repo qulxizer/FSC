@@ -8,6 +8,7 @@
 #include <cstring>
 #include <opencv4/opencv2/opencv.hpp>
 
+
 void writeCvMatToSharedMemory(const cv::Mat &coloredMat,
                               const std::string &shmName)
 {
